@@ -1,12 +1,12 @@
-
 import { useEffect, useState } from 'react';
 import {
   FileSearch, Plus, Search, AlertTriangle, CheckCircle2,
   Clock3, ShieldCheck, XCircle, Eye, RefreshCw
 } from 'lucide-react';
 import { supabase } from '../supabase';
-import { analyzeBrandContent } from '../services/brandAnalyzer';
 import './ContentReviewsPage.css';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const initialForm = {
   title: '',
@@ -80,7 +80,24 @@ export default function ContentReviewsPage({ workspace, role }) {
       if (userError) throw userError;
       if (!userData.user) throw new Error('Your session has expired. Please sign in again.');
 
-      const analysis = analyzeBrandContent(form.original_content, guidelines);
+      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    content: form.original_content.trim(),
+    guidelines,
+  }),
+});
+
+const result = await response.json();
+
+if (!response.ok || !result.success) {
+  throw new Error(result.message || 'AI analysis failed.');
+}
+
+const analysis = result.analysis;
 
       const { data, error: insertError } = await supabase
         .from('content_reviews')
