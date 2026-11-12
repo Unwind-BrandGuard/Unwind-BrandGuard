@@ -1,7 +1,7 @@
-
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const workspaceRoutes = require('./routes/workspaceRoutes');
 
 const analysisRoutes = require('./routes/analysisRoutes');
 const invitationRoutes = require('./routes/invitationRoutes');
@@ -23,6 +23,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/analyze', analysisRoutes);
 app.use('/api/invitations', invitationRoutes);
+app.use('/api/workspaces', workspaceRoutes);
 
 const PORT = process.env.PORT || 5000;
 
