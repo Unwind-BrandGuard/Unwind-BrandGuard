@@ -80,14 +80,27 @@ export default function ContentReviewsPage({ workspace, role }) {
       if (userError) throw userError;
       if (!userData.user) throw new Error('Your session has expired. Please sign in again.');
 
-      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+  
+const { data: sessionData, error: sessionError } =
+  await supabase.auth.getSession();
+
+if (sessionError) throw sessionError;
+
+const accessToken = sessionData.session?.access_token;
+
+if (!accessToken) {
+  throw new Error('Your session has expired. Please sign in again.');
+}
+
+const response = await fetch(`${API_BASE_URL}/api/analyze`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
+    Authorization: `Bearer ${accessToken}`,
   },
   body: JSON.stringify({
     content: form.original_content.trim(),
-    guidelines,
+    workspace_id: workspace.id,
   }),
 });
 

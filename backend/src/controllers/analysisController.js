@@ -1,9 +1,8 @@
-
 const { analyzeWithGemini } = require('../services/geminiService');
 
 async function analyzeContent(req, res) {
   try {
-    const { content, guidelines } = req.body;
+    const { content, workspace_id } = req.body;
 
     if (!content || typeof content !== 'string' || !content.trim()) {
       return res.status(400).json({
@@ -19,14 +18,52 @@ async function analyzeContent(req, res) {
       });
     }
 
-    if (!Array.isArray(guidelines) || guidelines.length === 0) {
+    if (!workspace_id) {
       return res.status(400).json({
         success: false,
-        message: 'At least one active brand guideline is required.',
+        message: 'Workspace ID is required.',
       });
     }
 
-    const result = await analyzeWithGemini(content, guidelines);
+    const { data: membership, error: membershipError } = await req.supabase
+      .from('workspace_members')
+      .select('role')
+      .eq('workspace_id', workspace_id)
+      .eq('user_id', req.user.id)
+      .maybeSingle();
+
+    if (membershipError) throw membershipError;
+
+    if (!membership) {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not a member of this workspace.',
+      });
+    }
+
+    if (!['owner', 'admin', 'editor'].includes(membership.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to submit content for analysis.',
+      });
+    }
+
+    const { data: guidelines, error: guidelineError } = await req.supabase
+      .from('brand_guidelines')
+      .select('*')
+      .eq('workspace_id', workspace_id)
+      .eq('status', 'active');
+
+    if (guidelineError) throw guidelineError;
+
+    if (!guidelines || guidelines.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No active brand guidelines found for this workspace.',
+      });
+    }
+
+    const result = await analyzeWithGemini(content.trim(), guidelines);
 
     return res.status(200).json({
       success: true,
@@ -37,9 +74,7 @@ async function analyzeContent(req, res) {
 
     return res.status(500).json({
       success: false,
-      message: error.message.includes('API key')
-        ? 'AI analysis is not configured. Check the backend API key.'
-        : 'Unable to analyse content right now. Please try again.',
+      message: 'Unable to analyse content right now. Please try again.',
     });
   }
 }
