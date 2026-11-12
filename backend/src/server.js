@@ -1,8 +1,10 @@
+
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
 const analysisRoutes = require('./routes/analysisRoutes');
+const invitationRoutes = require('./routes/invitationRoutes');
 
 const app = express();
 
@@ -20,6 +22,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/analyze', analysisRoutes);
+app.use('/api/invitations', invitationRoutes);
 
 const PORT = process.env.PORT || 5000;
 
