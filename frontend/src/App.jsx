@@ -218,7 +218,7 @@ export default function App() {
         return <GuidelinesPage workspace={workspace} role={role} />
 
       case 'Content Reviews':
-        return <ContentReviewsPage workspace={workspace} />
+  return <ContentReviewsPage workspace={workspace} role={role} />
 
       case 'Insights':
         return <InsightsPage workspace={workspace} />
