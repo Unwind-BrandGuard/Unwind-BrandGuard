@@ -273,9 +273,10 @@ export default function App() {
       case 'Settings':
         return (
           <SettingsPage
-            workspace={workspace}
-            role={role}
-          />
+  workspace={workspace}
+  role={role}
+  onWorkspaceUpdate={setWorkspace}
+/>
         )
 
       default:
