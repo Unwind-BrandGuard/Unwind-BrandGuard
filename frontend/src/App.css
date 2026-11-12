@@ -1411,3 +1411,49 @@ footer span { margin: 0 7px; }
     font-size: 8px;
   }
 }
+
+.auth-password-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.auth-password-toggle:hover {
+  color: var(--text-primary);
+}
+
+.auth-field-hint {
+  display: block;
+  margin-top: -8px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.auth-forgot {
+  align-self: flex-end;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12px;
+  margin-top: -8px;
+}
+
+.auth-terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.auth-terms input {
+  margin-top: 2px;
+  accent-color: var(--accent);
+}

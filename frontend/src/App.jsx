@@ -15,7 +15,8 @@ import {
 
 import { supabase } from './supabase'
 import LandingPage from './pages/LandingPage'
-import AuthPage from './pages/AuthPage'
+import LoginPage from './pages/LoginPage'
+import SignupPage from './pages/SignupPage'
 import OverviewPage from './pages/OverviewPage'
 import GuidelinesPage from './pages/GuidelinesPage'
 import ContentReviewsPage from './pages/ContentReviewsPage'
@@ -29,18 +30,21 @@ const navigation = [
   { name: 'Brand Guidelines', icon: BookOpen },
   { name: 'Content Reviews', icon: FileSearch },
   { name: 'Insights', icon: ChartNoAxesCombined },
-  { name: 'Settings', icon: Settings },
+  { name: 'Settings', icon: Settings }
 ]
 
 export default function App() {
   const [session, setSession] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [authOpen, setAuthOpen] = useState(false)
+  const [authPage, setAuthPage] = useState('login')
+
   const [workspace, setWorkspace] = useState(null)
   const [role, setRole] = useState(null)
   const [workspaceLoading, setWorkspaceLoading] = useState(false)
   const [workspaceRetry, setWorkspaceRetry] = useState(0)
   const [workspaceError, setWorkspaceError] = useState('')
+
   const [active, setActive] = useState('Overview')
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -51,6 +55,7 @@ export default function App() {
 
     supabase.auth.getSession().then(({ data, error }) => {
       if (!mounted) return
+
       if (error) console.error('Session check failed:', error)
 
       setSession(data?.session ?? null)
@@ -61,7 +66,10 @@ export default function App() {
       data: { subscription }
     } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession)
-      if (newSession) setAuthOpen(false)
+
+      if (newSession) {
+        setAuthOpen(false)
+      }
     })
 
     return () => {
@@ -121,9 +129,12 @@ export default function App() {
             .single()
 
           if (error) throw error
+
           currentWorkspace = data
         } else {
           const workspaceName =
+            user.user_metadata?.workspace_name?.trim() ||
+            user.user_metadata?.company_name?.trim() ||
             `${user.email?.split('@')[0] || 'My'} Brand Workspace`
 
           const { data, error } = await supabase.rpc(
@@ -134,6 +145,7 @@ export default function App() {
           if (error) throw error
 
           currentWorkspace = data
+
           membership = {
             role: 'owner',
             workspace_id: data.id
@@ -152,11 +164,13 @@ export default function App() {
     request
       .then(({ workspace: currentWorkspace, role: currentRole }) => {
         if (cancelled) return
+
         setWorkspace(currentWorkspace)
         setRole(currentRole)
       })
       .catch(error => {
         console.error('Workspace loading failed:', error)
+
         workspaceRequests.current.delete(user.id)
 
         if (!cancelled) {
@@ -179,6 +193,7 @@ export default function App() {
     setWorkspace(null)
     setRole(null)
     setActive('Overview')
+
     await supabase.auth.signOut()
   }
 
@@ -192,14 +207,36 @@ export default function App() {
   }
 
   if (!session) {
-    return authOpen
-      ? <AuthPage onBack={() => setAuthOpen(false)} />
-      : (
+    if (!authOpen) {
+      return (
         <LandingPage
-          onGetStarted={() => setAuthOpen(true)}
-          onSignIn={() => setAuthOpen(true)}
+          onGetStarted={() => {
+            setAuthPage('signup')
+            setAuthOpen(true)
+          }}
+          onSignIn={() => {
+            setAuthPage('login')
+            setAuthOpen(true)
+          }}
         />
       )
+    }
+
+    if (authPage === 'signup') {
+      return (
+        <SignupPage
+          onBack={() => setAuthOpen(false)}
+          onLogin={() => setAuthPage('login')}
+        />
+      )
+    }
+
+    return (
+      <LoginPage
+        onBack={() => setAuthOpen(false)}
+        onSignup={() => setAuthPage('signup')}
+      />
+    )
   }
 
   const email = session.user.email || 'Workspace member'
@@ -215,19 +252,39 @@ export default function App() {
         )
 
       case 'Brand Guidelines':
-        return <GuidelinesPage workspace={workspace} role={role} />
+        return (
+          <GuidelinesPage
+            workspace={workspace}
+            role={role}
+          />
+        )
 
       case 'Content Reviews':
-  return <ContentReviewsPage workspace={workspace} role={role} />
+        return (
+          <ContentReviewsPage
+            workspace={workspace}
+            role={role}
+          />
+        )
 
-     case 'Insights':
-  return <InsightsPage workspace={workspace} />;
+      case 'Insights':
+        return <InsightsPage workspace={workspace} />
 
       case 'Settings':
-        return <SettingsPage workspace={workspace} role={role} />
+        return (
+          <SettingsPage
+            workspace={workspace}
+            role={role}
+          />
+        )
 
       default:
-        return <OverviewPage workspace={workspace} setActive={setActive} />
+        return (
+          <OverviewPage
+            workspace={workspace}
+            setActive={setActive}
+          />
+        )
     }
   }
 
@@ -292,6 +349,7 @@ export default function App() {
                   ? role.charAt(0).toUpperCase() + role.slice(1)
                   : 'Workspace member'}
               </strong>
+
               <span>{email}</span>
             </div>
 
