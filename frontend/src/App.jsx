@@ -220,8 +220,8 @@ export default function App() {
       case 'Content Reviews':
   return <ContentReviewsPage workspace={workspace} role={role} />
 
-      case 'Insights':
-        return <InsightsPage workspace={workspace} />
+     case 'Insights':
+  return <InsightsPage workspace={workspace} />;
 
       case 'Settings':
         return <SettingsPage workspace={workspace} role={role} />
