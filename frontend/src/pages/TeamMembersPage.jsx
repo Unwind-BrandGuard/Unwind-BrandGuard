@@ -121,46 +121,46 @@ export default function TeamMembersPage({ workspace, role }) {
     loadTeam()
   }, [loadTeam])
 
-  async function handleInvite(event) {
-    event.preventDefault()
+  
+async function handleInvite(event) {
+  event.preventDefault()
 
-    if (!inviteEmail.trim() || !workspace?.id) return
+  if (!inviteEmail.trim() || !workspace?.id) return
 
-    setInviting(true)
-    setError('')
-    setNotice('')
+  setInviting(true)
+  setError('')
+  setNotice('')
 
-    try {
-      const result = await apiRequest('/api/invitations', {
-        method: 'POST',
-        body: JSON.stringify({
-          workspace_id: workspace.id,
-          email: inviteEmail.trim(),
-          role: inviteRole
-        })
+  const recipientEmail = inviteEmail.trim()
+
+  try {
+    const result = await apiRequest('/api/invitations', {
+      method: 'POST',
+      body: JSON.stringify({
+        workspace_id: workspace.id,
+        email: recipientEmail,
+        role: inviteRole
       })
+    })
 
-      setInviteEmail('')
-      setNotice('Invitation created successfully.')
+    setInviteEmail('')
 
-      if (result.invitation_link) {
-        try {
-          await navigator.clipboard.writeText(result.invitation_link)
-          setNotice('Invitation created. The invitation link has been copied.')
-        } catch {
-          setNotice(
-            'Invitation created, but the link could not be copied. Check the API response.'
-          )
-        }
-      }
-
-      await loadTeam()
-    } catch (err) {
-      setError(err.message || 'Unable to create invitation.')
-    } finally {
-      setInviting(false)
+    if (result.email_sent) {
+      setNotice(`Invitation link sent to ${recipientEmail}.`)
+    } else {
+      setError(
+        result.message ||
+        `Invitation was created, but the email could not be sent to ${recipientEmail}.`
+      )
     }
+
+    await loadTeam()
+  } catch (err) {
+    setError(err.message || 'Unable to create invitation.')
+  } finally {
+    setInviting(false)
   }
+}
 
   async function handleRoleChange(userId, newRole) {
     if (!window.confirm(`Change this member's role to ${ROLE_LABELS[newRole]}?`)) {
