@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import {
   ShieldCheck, LockKeyhole, Mail, ArrowRight,
@@ -9,6 +8,8 @@ import { supabase } from '../supabase'
 export default function SignupPage({
   onBack,
   onLogin,
+  onTerms,
+  onPrivacy,
   invitationMode = false,
   invitationToken = ''
 }) {
@@ -212,8 +213,15 @@ export default function SignupPage({
               onChange={e => setAcceptedTerms(e.target.checked)}
             />
             <span>
-              I agree to the Terms of Service and Privacy Policy.
-            </span>
+  I agree to the{' '}
+  <button type="button" className="auth-legal-link" onClick={onTerms}>
+    Terms of Service
+  </button>
+  {' '}and{' '}
+  <button type="button" className="auth-legal-link" onClick={onPrivacy}>
+    Privacy Policy
+  </button>.
+</span>
           </label>
 
           {error && <div className="auth-error">{error}</div>}

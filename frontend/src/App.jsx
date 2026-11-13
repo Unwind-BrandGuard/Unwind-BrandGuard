@@ -24,6 +24,8 @@ import ContentReviewsPage from './pages/ContentReviewsPage'
 import InsightsPage from './pages/InsightsPage'
 import SettingsPage from './pages/SettingsPage'
 import TeamMembersPage from './pages/TeamMembersPage'
+import TermsOfServicePage from './pages/TermsOfServicePage'
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
 
 import './App.css'
 
@@ -51,6 +53,7 @@ export default function App() {
   )
 
   const [authPage, setAuthPage] = useState('login')
+  const [legalPage, setLegalPage] = useState('')
 
   const [workspace, setWorkspace] = useState(null)
   const [role, setRole] = useState(null)
@@ -284,6 +287,22 @@ export default function App() {
     )
   }
 
+  if (legalPage === 'terms') {
+    return (
+      <TermsOfServicePage
+        onBack={() => setLegalPage('')}
+      />
+    )
+  }
+
+  if (legalPage === 'privacy') {
+    return (
+      <PrivacyPolicyPage
+        onBack={() => setLegalPage('')}
+      />
+    )
+  }
+
   if (!session) {
     if (!authOpen) {
       return (
@@ -296,6 +315,8 @@ export default function App() {
             setAuthPage('login')
             setAuthOpen(true)
           }}
+          onTerms={() => setLegalPage('terms')}
+          onPrivacy={() => setLegalPage('privacy')}
         />
       )
     }
@@ -303,11 +324,13 @@ export default function App() {
     if (authPage === 'signup') {
       return (
         <SignupPage
-  invitationMode={Boolean(invitationToken)}
-  invitationToken={invitationToken}
-  onBack={() => setAuthOpen(false)}
-  onLogin={() => setAuthPage('login')}
-/>
+          invitationMode={Boolean(invitationToken)}
+          invitationToken={invitationToken}
+          onBack={() => setAuthOpen(false)}
+          onLogin={() => setAuthPage('login')}
+          onTerms={() => setLegalPage('terms')}
+          onPrivacy={() => setLegalPage('privacy')}
+        />
       )
     }
 
@@ -524,9 +547,20 @@ export default function App() {
           ) : null}
         </div>
 
-        <footer>
-          UNWIND BRANDGUARD <span>·</span> Prototype v0.4
-          <span>·</span> AI-assisted, human-controlled governance
+        <footer className="app-footer">
+          <span>
+            UNWIND BRANDGUARD <span>·</span> Prototype v0.4
+            <span>·</span> AI-assisted, human-controlled governance
+          </span>
+
+          <div className="app-legal-links">
+            <button onClick={() => setLegalPage('terms')}>
+              Terms of Service
+            </button>
+            <button onClick={() => setLegalPage('privacy')}>
+              Privacy Policy
+            </button>
+          </div>
         </footer>
       </main>
     </div>

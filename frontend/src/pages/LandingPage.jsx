@@ -28,7 +28,12 @@ function WorkflowStep({ number, title, description }) {
   )
 }
 
-export default function LandingPage({ onGetStarted, onSignIn }) {
+export default function LandingPage({
+  onGetStarted,
+  onSignIn,
+  onTerms,
+  onPrivacy
+}) {
   return (
     <main className="landing-page">
       <nav className="landing-nav">
@@ -172,13 +177,20 @@ export default function LandingPage({ onGetStarted, onSignIn }) {
       </section>
 
       <footer className="landing-footer">
-        <a className="landing-brand" href="#home">
-          <span className="brand-icon"><ShieldCheck size={20} /></span>
-          <span><strong>UNWIND</strong><small>BRANDGUARD</small></span>
-        </a>
-        <span>AI-assisted. Human-controlled.</span>
-        <span>UNWIND BRANDGUARD · PROTOTYPE</span>
-      </footer>
+  <a className="landing-brand" href="#home">
+    <span className="brand-icon"><ShieldCheck size={20} /></span>
+    <span><strong>UNWIND</strong><small>BRANDGUARD</small></span>
+  </a>
+
+  <span>AI-assisted. Human-controlled.</span>
+
+  <div className="landing-legal-links">
+    <button onClick={onTerms}>Terms of Service</button>
+    <button onClick={onPrivacy}>Privacy Policy</button>
+  </div>
+
+  <span>UNWIND BRANDGUARD · PROTOTYPE</span>
+</footer>
     </main>
   )
 }
