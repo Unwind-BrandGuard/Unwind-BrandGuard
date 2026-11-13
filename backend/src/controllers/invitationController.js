@@ -1,6 +1,6 @@
-
 const crypto = require('crypto');
 const { supabaseAdmin } = require('../config/supabaseAdmin');
+const { sendInvitationEmail } = require('../services/emailService');
 
 const ALLOWED_ROLES = ['admin', 'editor', 'reviewer', 'viewer'];
 
@@ -137,14 +137,42 @@ async function createInvitation(req, res) {
     ).replace(/\/+$/, '');
 
     const invitationLink =
-      `${frontendUrl}/accept-invitation?token=${token}`;
+  `${frontendUrl}/accept-invitation?token=${token}`;
 
-    return res.status(201).json({
-      success: true,
-      message: 'Invitation created successfully.',
-      invitation,
-      invitation_link: invitationLink,
-    });
+let emailSent = false;
+
+try {
+  const { data: workspaceDetails, error: detailsError } =
+    await req.supabase
+      .from('workspaces')
+      .select('name')
+      .eq('id', workspace_id)
+      .single();
+
+  if (detailsError) throw detailsError;
+
+  await sendInvitationEmail({
+    email: normalizedEmail,
+    role,
+    invitationLink,
+    workspaceName: workspaceDetails.name
+  });
+
+  emailSent = true;
+} catch (emailError) {
+  console.error('Invitation email delivery failed:', emailError.message);
+}
+
+return res.status(201).json({
+  success: true,
+  message: emailSent
+    ? 'Invitation created and email sent successfully.'
+    : 'Invitation created, but email delivery failed. You can share the invitation link manually.',
+  email_sent: emailSent,
+  invitation,
+  invitation_link: invitationLink,
+});
+
   } catch (error) {
     console.error('Create invitation error:', error.message);
 
