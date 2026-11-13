@@ -38,7 +38,9 @@ export default function LandingPage({
     <main className="landing-page">
       <nav className="landing-nav">
         <a className="landing-brand" href="#home">
-          <span className="brand-icon"><ShieldCheck size={23} /></span>
+          <span className="brand-icon">
+  <img src="/brandguard-logo.png" alt="Unwind BrandGuard" />
+</span>
           <span><strong>UNWIND</strong><small>BRANDGUARD</small></span>
         </a>
 
@@ -167,7 +169,9 @@ export default function LandingPage({
       </section>
 
       <section className="landing-cta">
-        <div className="landing-cta-icon"><ShieldCheck size={30} /></div>
+        <div className="landing-cta-icon">
+  <img src="/brandguard-logo.png" alt="Unwind BrandGuard" />
+</div>
         <span className="eyebrow">YOUR BRAND, YOUR CONTROL</span>
         <h2>Make every piece of content feel like you.</h2>
         <p>Start building a more consistent and accountable content workflow.</p>
@@ -178,7 +182,9 @@ export default function LandingPage({
 
       <footer className="landing-footer">
   <a className="landing-brand" href="#home">
-    <span className="brand-icon"><ShieldCheck size={20} /></span>
+    <span className="brand-icon">
+  <img src="/brandguard-logo.png" alt="Unwind BrandGuard" />
+</span>
     <span><strong>UNWIND</strong><small>BRANDGUARD</small></span>
   </a>
 

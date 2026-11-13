@@ -99,7 +99,13 @@ export default function SignupPage({
 
       <div className="auth-card">
         <div className="auth-brand">
-          <div className="brand-icon"><ShieldCheck size={25} /></div>
+          <div className="brand-icon auth-brand-icon">
+  <img
+    src="/brandguard-logo.png"
+    alt="Unwind BrandGuard"
+    className="brand-logo"
+  />
+</div>
           <div><strong>UNWIND</strong><span>BRANDGUARD</span></div>
         </div>
 

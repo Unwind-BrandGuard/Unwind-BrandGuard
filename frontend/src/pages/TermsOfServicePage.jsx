@@ -11,13 +11,13 @@ export default function TermsOfServicePage({ onBack }) {
           Back
         </button>
 
-        <div className="legal-brand">
-          <ShieldCheck size={23} />
-          <span>
-            <strong>UNWIND</strong>
-            <small>BRANDGUARD</small>
-          </span>
-        </div>
+        <div className="brand-icon legal-brand-icon">
+  <img
+    src="/brandguard-logo.png"
+    alt="Unwind BrandGuard"
+    className="brand-logo"
+  />
+</div>
       </header>
 
       <article className="legal-document">

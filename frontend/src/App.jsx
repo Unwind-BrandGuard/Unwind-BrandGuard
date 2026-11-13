@@ -406,7 +406,11 @@ export default function App() {
       <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="brand">
           <div className="brand-icon">
-            <ShieldCheck size={23} />
+           <img
+  src="/brandguard-logo.png"
+  alt="Unwind BrandGuard"
+  className="brand-logo"
+/>
           </div>
 
           <div>
