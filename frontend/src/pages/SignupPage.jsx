@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../supabase'
 
-export default function SignupPage({ onBack, onLogin }) {
+export default function SignupPage({ onBack, onLogin, invitationMode = false }) {
   const [fullName, setFullName] = useState('')
   const [workspaceName, setWorkspaceName] = useState('')
   const [email, setEmail] = useState('')
@@ -39,18 +39,28 @@ export default function SignupPage({ onBack, onLogin }) {
       return
     }
 
+    if (!invitationMode && !workspaceName.trim()) {
+      setError('Please enter your company or brand name.')
+      return
+    }
+
     setLoading(true)
 
     try {
+      const metadata = {
+        full_name: fullName.trim()
+      }
+
+      if (!invitationMode) {
+        metadata.company_name = workspaceName.trim()
+        metadata.workspace_name = workspaceName.trim()
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
         options: {
-          data: {
-            full_name: fullName.trim(),
-            company_name: workspaceName.trim(),
-            workspace_name: workspaceName.trim()
-          }
+          data: metadata
         }
       })
 
@@ -58,8 +68,12 @@ export default function SignupPage({ onBack, onLogin }) {
 
       setMessage(
         data.session
-          ? 'Account created successfully. Your workspace is being prepared.'
-          : 'Account created! Please verify your email, then sign in to access your workspace.'
+          ? invitationMode
+            ? 'Account created. Your workspace invitation is being processed.'
+            : 'Account created successfully. Your workspace is being prepared.'
+          : invitationMode
+            ? 'Account created! Verify your email, then sign in using the invited email address to accept your workspace invitation.'
+            : 'Account created! Please verify your email, then sign in to access your workspace.'
       )
     } catch (err) {
       setError(err.message || 'Unable to create your account.')
@@ -80,10 +94,18 @@ export default function SignupPage({ onBack, onLogin }) {
           <div><strong>UNWIND</strong><span>BRANDGUARD</span></div>
         </div>
 
-        <div className="eyebrow">GET STARTED WITH BRANDGUARD</div>
-        <h1>Create your workspace.</h1>
+        <div className="eyebrow">
+          {invitationMode ? 'JOIN YOUR TEAM' : 'GET STARTED WITH BRANDGUARD'}
+        </div>
+
+        <h1>
+          {invitationMode ? 'Accept your invitation.' : 'Create your workspace.'}
+        </h1>
+
         <p className="auth-description">
-          Set up your account and establish your organisation's brand governance space.
+          {invitationMode
+            ? 'Create your account using the email address that received your workspace invitation.'
+            : "Set up your account and establish your organisation's brand governance space."}
         </p>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -101,21 +123,25 @@ export default function SignupPage({ onBack, onLogin }) {
             />
           </div>
 
-          <label>Company / Brand name</label>
-          <div className="auth-input">
-            <Building2 size={17} />
-            <input
-              type="text"
-              placeholder="Your company or brand"
-              value={workspaceName}
-              onChange={e => setWorkspaceName(e.target.value)}
-              maxLength={100}
-              required
-            />
-          </div>
-          <small className="auth-field-hint">
-            This will be your workspace name. You can change it later.
-          </small>
+          {!invitationMode && (
+            <>
+              <label>Company / Brand name</label>
+              <div className="auth-input">
+                <Building2 size={17} />
+                <input
+                  type="text"
+                  placeholder="Your company or brand"
+                  value={workspaceName}
+                  onChange={e => setWorkspaceName(e.target.value)}
+                  maxLength={100}
+                  required
+                />
+              </div>
+              <small className="auth-field-hint">
+                This will be your workspace name. You can change it later.
+              </small>
+            </>
+          )}
 
           <label>Work email</label>
           <div className="auth-input">

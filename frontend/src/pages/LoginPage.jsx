@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../supabase'
 
-export default function LoginPage({ onBack, onSignup }) {
+export default function LoginPage({ onBack, onSignup, invitationMode = false }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -64,9 +64,11 @@ export default function LoginPage({ onBack, onSignup }) {
         </div>
 
         <div className="eyebrow">BRAND GOVERNANCE PLATFORM</div>
-        <h1>Welcome back.</h1>
+        <h1>{invitationMode ? 'Join your team.' : 'Welcome back.'}</h1>
         <p className="auth-description">
-          Sign in to manage your brand standards and content reviews.
+          {invitationMode
+            ? 'Sign in with the email address that received your workspace invitation.'
+            : 'Sign in to manage your brand standards and content reviews.'}
         </p>
 
         <form onSubmit={handleSubmit} className="auth-form">

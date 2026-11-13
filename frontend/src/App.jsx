@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   Menu,
+  Users,
   X,
   AlertTriangle
 } from 'lucide-react'
@@ -22,21 +23,33 @@ import GuidelinesPage from './pages/GuidelinesPage'
 import ContentReviewsPage from './pages/ContentReviewsPage'
 import InsightsPage from './pages/InsightsPage'
 import SettingsPage from './pages/SettingsPage'
+import TeamMembersPage from './pages/TeamMembersPage'
 
 import './App.css'
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
 const navigation = [
   { name: 'Overview', icon: LayoutDashboard },
   { name: 'Brand Guidelines', icon: BookOpen },
   { name: 'Content Reviews', icon: FileSearch },
   { name: 'Insights', icon: ChartNoAxesCombined },
+  { name: 'Team Members', icon: Users },
   { name: 'Settings', icon: Settings }
 ]
 
 export default function App() {
   const [session, setSession] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
-  const [authOpen, setAuthOpen] = useState(false)
+
+  const [invitationToken, setInvitationToken] = useState(
+    () => new URLSearchParams(window.location.search).get('token') || ''
+  )
+
+  const [authOpen, setAuthOpen] = useState(
+    () => Boolean(new URLSearchParams(window.location.search).get('token'))
+  )
+
   const [authPage, setAuthPage] = useState('login')
 
   const [workspace, setWorkspace] = useState(null)
@@ -91,13 +104,11 @@ export default function App() {
 
     let cancelled = false
 
-    setWorkspaceLoading(true)
-    setWorkspaceError('')
+    async function loadWorkspace() {
+      setWorkspaceLoading(true)
+      setWorkspaceError('')
 
-    let request = workspaceRequests.current.get(user.id)
-
-    if (!request) {
-      request = (async () => {
+      try {
         const { data: authData, error: authError } =
           await supabase.auth.getUser()
 
@@ -111,64 +122,129 @@ export default function App() {
           )
         }
 
-        const { data: memberships, error: membershipError } = await supabase
-          .from('workspace_members')
-          .select('workspace_id, role')
-          .eq('user_id', user.id)
+        if (invitationToken) {
+          const { data: sessionData, error: sessionError } =
+            await supabase.auth.getSession()
 
-        if (membershipError) throw membershipError
+          if (sessionError) throw sessionError
 
-        let membership = memberships?.[0]
-        let currentWorkspace
+          const accessToken = sessionData.session?.access_token
 
-        if (membership) {
-          const { data, error } = await supabase
-            .from('workspaces')
-            .select('*')
-            .eq('id', membership.workspace_id)
-            .single()
-
-          if (error) throw error
-
-          currentWorkspace = data
-        } else {
-          const workspaceName =
-            user.user_metadata?.workspace_name?.trim() ||
-            user.user_metadata?.company_name?.trim() ||
-            `${user.email?.split('@')[0] || 'My'} Brand Workspace`
-
-          const { data, error } = await supabase.rpc(
-            'create_my_workspace',
-            { workspace_name: workspaceName }
-          ).single()
-
-          if (error) throw error
-
-          currentWorkspace = data
-
-          membership = {
-            role: 'owner',
-            workspace_id: data.id
+          if (!accessToken) {
+            throw new Error('Your session has expired. Please sign in again.')
           }
+
+          const response = await fetch(
+            `${API_BASE_URL}/api/invitations/accept`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${accessToken}`
+              },
+              body: JSON.stringify({ token: invitationToken })
+            }
+          )
+
+          const result = await response.json()
+
+          if (!response.ok) {
+            throw new Error(
+              result.message || 'Unable to accept this workspace invitation.'
+            )
+          }
+
+          if (!result.workspace_id) {
+            throw new Error('The invitation response did not contain a workspace.')
+          }
+
+          const { data: invitedWorkspace, error: workspaceError } =
+            await supabase
+              .from('workspaces')
+              .select('*')
+              .eq('id', result.workspace_id)
+              .single()
+
+          if (workspaceError) throw workspaceError
+
+          if (cancelled) return
+
+          setWorkspace(invitedWorkspace)
+          setRole(result.role)
+          setActive('Overview')
+
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.origin
+          )
+
+          setInvitationToken('')
+          return
         }
 
-        return {
-          workspace: currentWorkspace,
-          role: membership?.role || null
+        let request = workspaceRequests.current.get(user.id)
+
+        if (!request) {
+          request = (async () => {
+            const { data: memberships, error: membershipError } =
+              await supabase
+                .from('workspace_members')
+                .select('workspace_id, role')
+                .eq('user_id', user.id)
+
+            if (membershipError) throw membershipError
+
+            let membership = memberships?.[0]
+            let currentWorkspace
+
+            if (membership) {
+              const { data, error } = await supabase
+                .from('workspaces')
+                .select('*')
+                .eq('id', membership.workspace_id)
+                .single()
+
+              if (error) throw error
+
+              currentWorkspace = data
+            } else {
+              const workspaceName =
+                user.user_metadata?.workspace_name?.trim() ||
+                user.user_metadata?.company_name?.trim() ||
+                `${user.email?.split('@')[0] || 'My'} Brand Workspace`
+
+              const { data, error } = await supabase.rpc(
+                'create_my_workspace',
+                { workspace_name: workspaceName }
+              ).single()
+
+              if (error) throw error
+
+              currentWorkspace = data
+
+              membership = {
+                role: 'owner',
+                workspace_id: data.id
+              }
+            }
+
+            return {
+              workspace: currentWorkspace,
+              role: membership?.role || null
+            }
+          })()
+
+          workspaceRequests.current.set(user.id, request)
         }
-      })()
 
-      workspaceRequests.current.set(user.id, request)
-    }
+        const result = await request
 
-    request
-      .then(({ workspace: currentWorkspace, role: currentRole }) => {
         if (cancelled) return
 
-        setWorkspace(currentWorkspace)
-        setRole(currentRole)
-      })
-      .catch(error => {
+        setWorkspace(result.workspace)
+        setRole(result.role)
+      } catch (error) {
         console.error('Workspace loading failed:', error)
 
         workspaceRequests.current.delete(user.id)
@@ -178,15 +254,17 @@ export default function App() {
             error.message || 'Could not load your workspace.'
           )
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setWorkspaceLoading(false)
-      })
+      }
+    }
+
+    loadWorkspace()
 
     return () => {
       cancelled = true
     }
-  }, [session?.user?.id, workspaceRetry])
+  }, [session?.user?.id, invitationToken, workspaceRetry])
 
   async function handleLogout() {
     workspaceRequests.current.clear()
@@ -225,6 +303,7 @@ export default function App() {
     if (authPage === 'signup') {
       return (
         <SignupPage
+          invitationMode={Boolean(invitationToken)}
           onBack={() => setAuthOpen(false)}
           onLogin={() => setAuthPage('login')}
         />
@@ -233,6 +312,7 @@ export default function App() {
 
     return (
       <LoginPage
+        invitationMode={Boolean(invitationToken)}
         onBack={() => setAuthOpen(false)}
         onSignup={() => setAuthPage('signup')}
       />
@@ -273,10 +353,18 @@ export default function App() {
       case 'Settings':
         return (
           <SettingsPage
-  workspace={workspace}
-  role={role}
-  onWorkspaceUpdate={setWorkspace}
-/>
+            workspace={workspace}
+            role={role}
+            onWorkspaceUpdate={setWorkspace}
+          />
+        )
+
+      case 'Team Members':
+        return (
+          <TeamMembersPage
+            workspace={workspace}
+            role={role}
+          />
         )
 
       default:
@@ -394,12 +482,18 @@ export default function App() {
         <div className="page">
           {workspaceLoading ? (
             <div className="content-panel loading-panel">
-              Setting up your workspace...
+              {invitationToken
+                ? 'Validating your workspace invitation...'
+                : 'Setting up your workspace...'}
             </div>
           ) : workspaceError ? (
             <div className="content-panel error-panel">
               <AlertTriangle size={22} />
-              <h2>Workspace could not be loaded</h2>
+              <h2>
+                {invitationToken
+                  ? 'Invitation could not be accepted'
+                  : 'Workspace could not be loaded'}
+              </h2>
               <p>{workspaceError}</p>
 
               <button
@@ -414,6 +508,15 @@ export default function App() {
               >
                 Try again
               </button>
+
+              {invitationToken && (
+                <button
+                  className="secondary-button"
+                  onClick={handleLogout}
+                >
+                  Sign out and switch account
+                </button>
+              )}
             </div>
           ) : workspace ? (
             renderPage()
