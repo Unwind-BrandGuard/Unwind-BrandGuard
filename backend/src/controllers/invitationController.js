@@ -1,3 +1,4 @@
+
 const crypto = require('crypto');
 const { supabaseAdmin } = require('../config/supabaseAdmin');
 
@@ -311,10 +312,20 @@ async function acceptInvitation(req, res) {
       throw error;
     }
 
+    const membership = Array.isArray(data) ? data[0] : data;
+
+    if (!membership?.workspace_id) {
+      throw new Error(
+        'Invitation was processed but the RPC did not return a workspace ID.'
+      );
+    }
+
     return res.status(200).json({
       success: true,
       message: 'You have successfully joined the workspace.',
-      membership: data?.[0] || null,
+      workspace_id: membership.workspace_id,
+      role: membership.role,
+      membership,
     });
   } catch (error) {
     console.error('Accept invitation error:', error.message);
