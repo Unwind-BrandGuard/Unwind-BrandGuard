@@ -303,10 +303,11 @@ export default function App() {
     if (authPage === 'signup') {
       return (
         <SignupPage
-          invitationMode={Boolean(invitationToken)}
-          onBack={() => setAuthOpen(false)}
-          onLogin={() => setAuthPage('login')}
-        />
+  invitationMode={Boolean(invitationToken)}
+  invitationToken={invitationToken}
+  onBack={() => setAuthOpen(false)}
+  onLogin={() => setAuthPage('login')}
+/>
       )
     }
 

@@ -95,19 +95,27 @@ export default function TeamMembersPage({ workspace, role }) {
 
       setCurrentUserId(userData.user.id)
 
-      const [memberResult, invitationResult] = await Promise.all([
-        apiRequest(`/api/workspaces/${workspace.id}/members`),
-        apiRequest(`/api/invitations/${workspace.id}`)
-      ])
+      const memberResult = await apiRequest(
+        `/api/workspaces/${workspace.id}/members`
+      )
 
       setMembers(memberResult.members || [])
-      setInvitations(invitationResult.invitations || [])
+
+      if (canManage) {
+        const invitationResult = await apiRequest(
+          `/api/invitations/${workspace.id}`
+        )
+
+        setInvitations(invitationResult.invitations || [])
+      } else {
+        setInvitations([])
+      }
     } catch (err) {
       setError(err.message || 'Unable to load team information.')
     } finally {
       setLoading(false)
     }
-  }, [workspace?.id, apiRequest])
+  }, [workspace?.id, apiRequest, canManage])
 
   useEffect(() => {
     loadTeam()
@@ -140,7 +148,9 @@ export default function TeamMembersPage({ workspace, role }) {
           await navigator.clipboard.writeText(result.invitation_link)
           setNotice('Invitation created. The invitation link has been copied.')
         } catch {
-          setNotice('Invitation created, but the link could not be copied. Check the API response.')
+          setNotice(
+            'Invitation created, but the link could not be copied. Check the API response.'
+          )
         }
       }
 
@@ -271,15 +281,17 @@ export default function TeamMembersPage({ workspace, role }) {
           </div>
         </div>
 
-        <div className="team-stat-card">
-          <Mail size={20} />
-          <div>
-            <strong>
-              {invitations.filter(item => item.status === 'pending').length}
-            </strong>
-            <span>Pending invitations</span>
+        {canManage && (
+          <div className="team-stat-card">
+            <Mail size={20} />
+            <div>
+              <strong>
+                {invitations.filter(item => item.status === 'pending').length}
+              </strong>
+              <span>Pending invitations</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {canManage && (
@@ -432,34 +444,34 @@ export default function TeamMembersPage({ workspace, role }) {
         </div>
       </section>
 
-      <section className="team-panel">
-        <div className="team-panel-heading">
-          <div>
-            <h2>Pending invitations</h2>
-            <p>Invitations awaiting acceptance.</p>
+      {canManage && (
+        <section className="team-panel">
+          <div className="team-panel-heading">
+            <div>
+              <h2>Pending invitations</h2>
+              <p>Invitations awaiting acceptance.</p>
+            </div>
+            <Clock size={21} />
           </div>
-          <Clock size={21} />
-        </div>
 
-        {invitations.filter(item => item.status === 'pending').length === 0 ? (
-          <div className="empty-invitations">
-            No pending invitations.
-          </div>
-        ) : (
-          <div className="invitation-list">
-            {invitations
-              .filter(item => item.status === 'pending')
-              .map(invitation => (
-                <div className="invitation-item" key={invitation.id}>
-                  <div>
-                    <strong>{invitation.email}</strong>
-                    <span>
-                      {ROLE_LABELS[invitation.role]} · Expires{' '}
-                      {new Date(invitation.expires_at).toLocaleDateString()}
-                    </span>
-                  </div>
+          {invitations.filter(item => item.status === 'pending').length === 0 ? (
+            <div className="empty-invitations">
+              No pending invitations.
+            </div>
+          ) : (
+            <div className="invitation-list">
+              {invitations
+                .filter(item => item.status === 'pending')
+                .map(invitation => (
+                  <div className="invitation-item" key={invitation.id}>
+                    <div>
+                      <strong>{invitation.email}</strong>
+                      <span>
+                        {ROLE_LABELS[invitation.role]} · Expires{' '}
+                        {new Date(invitation.expires_at).toLocaleDateString()}
+                      </span>
+                    </div>
 
-                  {canManage && (
                     <button
                       className="revoke-invitation"
                       disabled={pendingAction === invitation.id}
@@ -467,12 +479,12 @@ export default function TeamMembersPage({ workspace, role }) {
                     >
                       {pendingAction === invitation.id ? 'Revoking...' : 'Revoke'}
                     </button>
-                  )}
-                </div>
-              ))}
-          </div>
-        )}
-      </section>
+                  </div>
+                ))}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   )
 }

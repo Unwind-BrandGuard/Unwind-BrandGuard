@@ -6,7 +6,12 @@ import {
 } from 'lucide-react'
 import { supabase } from '../supabase'
 
-export default function SignupPage({ onBack, onLogin, invitationMode = false }) {
+export default function SignupPage({
+  onBack,
+  onLogin,
+  invitationMode = false,
+  invitationToken = ''
+}) {
   const [fullName, setFullName] = useState('')
   const [workspaceName, setWorkspaceName] = useState('')
   const [email, setEmail] = useState('')
@@ -60,8 +65,11 @@ export default function SignupPage({ onBack, onLogin, invitationMode = false }) 
         email: email.trim().toLowerCase(),
         password,
         options: {
-          data: metadata
-        }
+  emailRedirectTo: invitationMode && invitationToken
+    ? `${window.location.origin}/accept-invitation?token=${encodeURIComponent(invitationToken)}`
+    : window.location.origin,
+  data: metadata
+}
       })
 
       if (error) throw error
