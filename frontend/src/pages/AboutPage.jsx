@@ -18,32 +18,32 @@ import './AboutPage.css'
 
 const team = [
   {
-    initials: 'PN',
-    name: 'Parth Nikam',
-    role: 'Developer',
-    description:
-      'Part of the development team responsible for building Unwind BrandGuard.',
-    linkedin: 'https://www.linkedin.com/in/parth-nikam-535132375/',
-    icon: Code2
-  },
-  {
-    initials: 'AP',
-    name: 'Atharva Padwal',
-    role: 'Developer',
-    description:
-      'Part of the development team responsible for building Unwind BrandGuard.',
-    linkedin: 'https://www.linkedin.com/in/atharva-padwal-11b005397/',
-    icon: Code2
-  },
-  {
-    initials: 'HA',
-    name: 'Harshita Arava',
-    role: 'Project Manager',
-    description:
-      'Maintained project records and documented the team’s work and progress.',
-    linkedin: 'https://www.linkedin.com/in/harshita-arava-64275a319/',
-    icon: ClipboardList
-  }
+  initials: 'PN',
+  name: 'Parth Nikam',
+  role: 'Founder & CTO',
+  description:
+    'Led the project vision and technical development, overseeing system architecture, technology decisions, and implementation.',
+  linkedin: 'https://www.linkedin.com/in/parth-nikam-535132375/',
+  icon: Code2
+},
+{
+  initials: 'AP',
+  name: 'Atharva Padwal',
+  role: 'CMO & Developer',
+  description:
+    'Contributed to software development while focusing on brand strategy, marketing direction, and project outreach.',
+  linkedin: 'https://www.linkedin.com/in/atharva-padwal-11b005397/',
+  icon: Code2
+},
+{
+  initials: 'HA',
+  name: 'Harshita Arava',
+  role: 'Scrum Master & Project Manager',
+  description:
+  'Facilitated agile workflows, coordinated team activities, managed project timelines, and ensured smooth collaboration throughout development.',
+  linkedin: 'https://www.linkedin.com/in/harshita-arava-64275a319/',
+  icon: ClipboardList
+}
 ]
 
 const principles = [
