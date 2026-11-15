@@ -1,20 +1,99 @@
+
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+
+    <!-- Google Search Console verification -->
     <meta
       name="google-site-verification"
       content="ba51xSD9LlVrnHoDpoBvfDyZ1arpo-Up7dhvv0-E8XQ"
     />
-    <link rel="icon" type="image/png" href="/brandguard-logo.png" />
+
+    <!-- Basic SEO -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#020606" />
     <meta
       name="description"
-      content="Unwind BrandGuard — AI-powered brand governance with human-controlled content reviews."
+      content="Unwind BrandGuard is an AI-powered brand governance platform that helps organizations maintain brand consistency by analyzing content against approved brand guidelines and supporting human-controlled review workflows."
     />
-    <title>Unwind BrandGuard</title>
+    <meta name="robots" content="index, follow" />
+
+    <title>Unwind BrandGuard | AI-Powered Brand Governance</title>
+
+    <link
+      rel="canonical"
+      href="https://unwind-brand-guard.vercel.app/"
+    />
+    <link rel="icon" type="image/png" href="/brandguard-logo.png" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Unwind BrandGuard" />
+    <meta
+      property="og:title"
+      content="Unwind BrandGuard | AI-Powered Brand Governance"
+    />
+    <meta
+      property="og:description"
+      content="Maintain brand consistency with AI-powered content analysis and human-controlled brand review workflows."
+    />
+    <meta
+      property="og:url"
+      content="https://unwind-brand-guard.vercel.app/"
+    />
+    <meta
+      property="og:image"
+      content="https://unwind-brand-guard.vercel.app/brandguard-logo.png"
+    />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary" />
+    <meta
+      name="twitter:title"
+      content="Unwind BrandGuard | AI-Powered Brand Governance"
+    />
+    <meta
+      name="twitter:description"
+      content="AI-powered brand governance with human-controlled content reviews."
+    />
+    <meta
+      name="twitter:image"
+      content="https://unwind-brand-guard.vercel.app/brandguard-logo.png"
+    />
+
+    <!-- Structured Data: Website and Organization -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://unwind-brand-guard.vercel.app/#website",
+            "name": "Unwind BrandGuard",
+            "alternateName": "BrandGuard",
+            "url": "https://unwind-brand-guard.vercel.app/",
+            "description": "An AI-powered brand governance platform for brand guideline-based content analysis and human-controlled review workflows.",
+            "publisher": {
+              "@id": "https://unwind-brand-guard.vercel.app/#organization"
+            }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://unwind-brand-guard.vercel.app/#organization",
+            "name": "Unwind BrandGuard",
+            "url": "https://unwind-brand-guard.vercel.app/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://unwind-brand-guard.vercel.app/brandguard-logo.png"
+            },
+            "description": "The team behind Unwind BrandGuard, an AI-powered brand governance platform."
+          }
+        ]
+      }
+    </script>
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
