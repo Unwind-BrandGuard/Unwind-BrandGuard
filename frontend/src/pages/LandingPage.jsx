@@ -31,6 +31,7 @@ function WorkflowStep({ number, title, description }) {
 export default function LandingPage({
   onGetStarted,
   onSignIn,
+  onAbout,
   onTerms,
   onPrivacy
 }) {
@@ -45,10 +46,11 @@ export default function LandingPage({
         </a>
 
         <div className="landing-nav-links">
-          <a href="#features">Features</a>
-          <a href="#how-it-works">How it works</a>
-          <a href="#principles">Our approach</a>
-        </div>
+  <a href="#features">Features</a>
+  <a href="#how-it-works">How it works</a>
+  <a href="#principles">Our approach</a>
+  <button type="button" onClick={onAbout}>About us</button>
+</div>
 
         <div className="landing-nav-actions">
           <button className="landing-signin" onClick={onSignIn}>Sign in</button>

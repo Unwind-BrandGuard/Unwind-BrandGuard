@@ -26,6 +26,7 @@ import SettingsPage from './pages/SettingsPage'
 import TeamMembersPage from './pages/TeamMembersPage'
 import TermsOfServicePage from './pages/TermsOfServicePage'
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
+import AboutPage from './pages/AboutPage'
 
 import './App.css'
 
@@ -55,6 +56,10 @@ export default function App() {
   const [authPage, setAuthPage] = useState('login')
   const [legalPage, setLegalPage] = useState('')
 
+  const [publicPage, setPublicPage] = useState(
+    () => window.location.pathname === '/about' ? 'about' : ''
+  )
+
   const [workspace, setWorkspace] = useState(null)
   const [role, setRole] = useState(null)
   const [workspaceLoading, setWorkspaceLoading] = useState(false)
@@ -65,6 +70,46 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const workspaceRequests = useRef(new Map())
+
+  // -----------------------------------------
+  // PUBLIC PAGE NAVIGATION
+  // -----------------------------------------
+
+  function openAboutPage() {
+    window.history.pushState({}, '', '/about')
+    setPublicPage('about')
+    setMenuOpen(false)
+  }
+
+  function closeAboutPage() {
+    window.history.pushState({}, '', '/')
+    setPublicPage('')
+  }
+
+  function startFromAbout(page) {
+    closeAboutPage()
+    setAuthPage(page)
+    setAuthOpen(true)
+  }
+
+  // Handle browser back and forward navigation
+  useEffect(() => {
+    function handlePopState() {
+      setPublicPage(
+        window.location.pathname === '/about' ? 'about' : ''
+      )
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
+
+  // -----------------------------------------
+  // AUTHENTICATION
+  // -----------------------------------------
 
   useEffect(() => {
     let mounted = true
@@ -93,6 +138,10 @@ export default function App() {
       subscription.unsubscribe()
     }
   }, [])
+
+  // -----------------------------------------
+  // WORKSPACE LOADING
+  // -----------------------------------------
 
   useEffect(() => {
     const user = session?.user
@@ -125,6 +174,7 @@ export default function App() {
           )
         }
 
+        // Accept workspace invitation if token exists
         if (invitationToken) {
           const { data: sessionData, error: sessionError } =
             await supabase.auth.getSession()
@@ -158,7 +208,9 @@ export default function App() {
           }
 
           if (!result.workspace_id) {
-            throw new Error('The invitation response did not contain a workspace.')
+            throw new Error(
+              'The invitation response did not contain a workspace.'
+            )
           }
 
           const { data: invitedWorkspace, error: workspaceError } =
@@ -186,6 +238,7 @@ export default function App() {
           return
         }
 
+        // Check existing workspace membership
         let request = workspaceRequests.current.get(user.id)
 
         if (!request) {
@@ -269,6 +322,10 @@ export default function App() {
     }
   }, [session?.user?.id, invitationToken, workspaceRetry])
 
+  // -----------------------------------------
+  // LOGOUT
+  // -----------------------------------------
+
   async function handleLogout() {
     workspaceRequests.current.clear()
     setWorkspace(null)
@@ -278,6 +335,10 @@ export default function App() {
     await supabase.auth.signOut()
   }
 
+  // -----------------------------------------
+  // LOADING SCREEN
+  // -----------------------------------------
+
   if (authLoading) {
     return (
       <div className="loading-screen">
@@ -286,6 +347,10 @@ export default function App() {
       </div>
     )
   }
+
+  // -----------------------------------------
+  // TERMS AND PRIVACY PAGES
+  // -----------------------------------------
 
   if (legalPage === 'terms') {
     return (
@@ -303,6 +368,24 @@ export default function App() {
     )
   }
 
+  // -----------------------------------------
+  // PUBLIC ABOUT PAGE
+  // -----------------------------------------
+
+  if (publicPage === 'about') {
+    return (
+      <AboutPage
+        onBack={closeAboutPage}
+        onGetStarted={() => startFromAbout('signup')}
+        onSignIn={() => startFromAbout('login')}
+      />
+    )
+  }
+
+  // -----------------------------------------
+  // PUBLIC LANDING PAGE AND AUTHENTICATION
+  // -----------------------------------------
+
   if (!session) {
     if (!authOpen) {
       return (
@@ -315,6 +398,7 @@ export default function App() {
             setAuthPage('login')
             setAuthOpen(true)
           }}
+          onAbout={openAboutPage}
           onTerms={() => setLegalPage('terms')}
           onPrivacy={() => setLegalPage('privacy')}
         />
@@ -342,6 +426,10 @@ export default function App() {
       />
     )
   }
+
+  // -----------------------------------------
+  // AUTHENTICATED WORKSPACE
+  // -----------------------------------------
 
   const email = session.user.email || 'Workspace member'
 
@@ -406,11 +494,11 @@ export default function App() {
       <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="brand">
           <div className="brand-icon">
-           <img
-  src="/brandguard-logo.png"
-  alt="Unwind BrandGuard"
-  className="brand-logo"
-/>
+            <img
+              src="/brandguard-logo.png"
+              alt="Unwind BrandGuard"
+              className="brand-logo"
+            />
           </div>
 
           <div>
@@ -517,11 +605,13 @@ export default function App() {
           ) : workspaceError ? (
             <div className="content-panel error-panel">
               <AlertTriangle size={22} />
+
               <h2>
                 {invitationToken
                   ? 'Invitation could not be accepted'
                   : 'Workspace could not be loaded'}
               </h2>
+
               <p>{workspaceError}</p>
 
               <button
@@ -561,6 +651,7 @@ export default function App() {
             <button onClick={() => setLegalPage('terms')}>
               Terms of Service
             </button>
+
             <button onClick={() => setLegalPage('privacy')}>
               Privacy Policy
             </button>

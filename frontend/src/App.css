@@ -1572,3 +1572,343 @@ footer span { margin: 0 7px; }
   width: 64px;
   height: 64px;
 }
+
+
+/* =========================================
+   ABOUT PAGE
+========================================= */
+
+.about-page {
+  min-height: 100vh;
+  background: #080d0e;
+  color: #e9f1ef;
+  overflow: hidden;
+}
+
+.about-nav {
+  width: min(1180px, calc(100% - 64px));
+  height: 88px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #1d2a2a;
+}
+
+.about-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.about-hero,
+.about-mission,
+.about-team,
+.about-technology,
+.about-bottom-cta {
+  width: min(1080px, calc(100% - 64px));
+  margin: auto;
+}
+
+.about-hero {
+  padding: 110px 0 100px;
+  text-align: center;
+}
+
+.about-hero h1 {
+  margin: 24px 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(38px, 6vw, 66px);
+  letter-spacing: -2px;
+}
+
+.about-hero h1 span {
+  color: #65e9cc;
+}
+
+.about-hero > p {
+  max-width: 760px;
+  margin: auto;
+  color: #a6b7b3;
+  font-size: 16px;
+  line-height: 1.9;
+}
+
+.about-hero-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 30px;
+  padding: 12px 18px;
+  border: 1px solid #24433d;
+  border-radius: 30px;
+  color: #75e8cc;
+  font-size: 13px;
+}
+
+.about-mission {
+  padding: 65px 0;
+  border-top: 1px solid #1d2a2a;
+  border-bottom: 1px solid #1d2a2a;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+}
+
+.about-section-heading .eyebrow {
+  color: #65e9cc;
+}
+
+.about-section-heading h2 {
+  margin: 15px 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(28px, 4vw, 40px);
+  letter-spacing: -1px;
+}
+
+.about-section-heading > p,
+.about-mission > p {
+  color: #a6b7b3;
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.about-team,
+.about-technology {
+  padding: 100px 0;
+}
+
+.about-team .about-section-heading,
+.about-technology .about-section-heading {
+  margin-bottom: 40px;
+}
+
+.about-team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+.about-team-card {
+  min-width: 0;
+  padding: 27px;
+  background: #101a19;
+  border: 1px solid #243330;
+  border-radius: 13px;
+  transition: transform .2s ease, border-color .2s ease;
+}
+
+.about-team-card:hover {
+  transform: translateY(-5px);
+  border-color: #397c6d;
+}
+
+.about-member-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 27px;
+}
+
+.about-member-avatar {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #173c34;
+  border: 1px solid #32695b;
+  color: #78efd0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.about-member-icon {
+  color: #65cbb1;
+}
+
+.about-member-role {
+  color: #65e9cc;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.about-team-card h3 {
+  margin: 10px 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 21px;
+}
+
+.about-team-card > p {
+  min-height: 78px;
+  color: #a6b7b3;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.about-linkedin {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 17px;
+  color: #73dfc3;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.about-linkedin:hover {
+  color: #b7fff2;
+}
+
+.about-tech-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.about-tech-list span {
+  padding: 12px 18px;
+  background: #101a19;
+  border: 1px solid #263b36;
+  border-radius: 7px;
+  color: #c5d8d2;
+  font-size: 13px;
+}
+
+.about-bottom-cta {
+  margin-bottom: 75px;
+  padding: 65px 25px;
+  text-align: center;
+  background: #101a19;
+  border: 1px solid #263b36;
+  border-radius: 15px;
+}
+
+.about-bottom-cta h2 {
+  margin: 18px 0 12px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(25px, 4vw, 38px);
+}
+
+.about-bottom-cta > p {
+  margin-bottom: 25px;
+  color: #a6b7b3;
+  font-size: 14px;
+}
+
+.about-footer {
+  width: min(1180px, calc(100% - 64px));
+  min-height: 90px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid #1d2a2a;
+  color: #82958e;
+  font-size: 11px;
+}
+
+.about-footer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  color: #a6b7b3;
+  cursor: pointer;
+}
+
+.about-footer button:hover {
+  color: #65e9cc;
+}
+
+/* Public navigation About button */
+
+.landing-nav-links button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #a6b7b3;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color .2s ease;
+}
+
+.landing-nav-links button:hover {
+  color: #65e9cc;
+}
+
+/* Responsive About page */
+
+@media (max-width: 850px) {
+  .about-team-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .about-mission {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .about-nav,
+  .about-hero,
+  .about-mission,
+  .about-team,
+  .about-technology,
+  .about-bottom-cta,
+  .about-footer {
+    width: calc(100% - 36px);
+  }
+
+  .about-nav {
+    height: 72px;
+  }
+
+  .about-nav-actions {
+    gap: 12px;
+  }
+
+  .about-nav-actions .primary-button {
+    padding: 10px 12px;
+  }
+
+  .about-hero {
+    padding: 75px 0;
+  }
+
+  .about-team,
+  .about-technology {
+    padding: 70px 0;
+  }
+
+  .about-team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-team-card > p {
+    min-height: auto;
+  }
+
+  .about-footer {
+    padding: 22px 0;
+    flex-wrap: wrap;
+  }
+}
+
+.linkedin-text-icon {
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  background: #73dfc3;
+  color: #080d0e;
+  font-size: 11px;
+  font-weight: 800;
+}
