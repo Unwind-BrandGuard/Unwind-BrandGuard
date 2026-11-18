@@ -1,6 +1,44 @@
 const { GoogleGenAI } = require('@google/genai');
 const { randomUUID } = require('crypto');
 
+const ALLOWED_MIME_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'application/pdf',
+];
+
+const ALLOWED_SEVERITIES = ['high', 'medium', 'low'];
+
+const ALLOWED_CATEGORIES = [
+  'voice_tone',
+  'terminology',
+  'approved_fact',
+  'prohibited_claim',
+  'accessibility',
+  'visual_identity',
+  'other',
+];
+
+function isRetryableError(error) {
+  const errorDetails = [
+    error?.status,
+    error?.code,
+    error?.message,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    /503|UNAVAILABLE|429|RESOURCE_EXHAUSTED|500|INTERNAL/i.test(
+      errorDetails
+    ) ||
+    /ECONNRESET|ETIMEDOUT|ECONNREFUSED|EAI_AGAIN|ENOTFOUND|fetch failed|socket hang up|network error/i.test(
+      errorDetails
+    )
+  );
+}
+
 async function generateJsonWithRetry(ai, contents) {
   let response;
   let lastError;
@@ -20,12 +58,9 @@ async function generateJsonWithRetry(ai, contents) {
     } catch (error) {
       lastError = error;
 
-      const retryable =
-        /503|UNAVAILABLE|429|RESOURCE_EXHAUSTED|500|INTERNAL/i.test(
-          `${error.status || ''} ${error.message || ''}`
-        );
-
-      if (!retryable || attempt === 3) throw error;
+      if (!isRetryableError(error) || attempt === 3) {
+        throw error;
+      }
 
       await new Promise((resolve) =>
         setTimeout(resolve, attempt * 2000)
@@ -59,7 +94,6 @@ function getGuidelineSources(guideline) {
   );
 }
 
-
 function normalizeEvidence(value) {
   return String(value || '')
     .normalize('NFKC')
@@ -74,13 +108,22 @@ function matchesGuidelineEvidence(evidence, guideline) {
 
   if (!normalizedEvidence) return false;
 
-  return getGuidelineSources(guideline).some((source) => {
-    return normalizeEvidence(source).includes(normalizedEvidence);
-  });
+  return getGuidelineSources(guideline).some((source) =>
+    normalizeEvidence(source).includes(normalizedEvidence)
+  );
 }
 
-function getFindingValidationError(finding, content, guidelineMap) {
-  if (!finding || typeof finding !== 'object') {
+function getFindingValidationError(
+  finding,
+  content,
+  guidelineMap,
+  file = null
+) {
+  if (
+    !finding ||
+    typeof finding !== 'object' ||
+    Array.isArray(finding)
+  ) {
     return 'Invalid finding structure';
   }
 
@@ -98,28 +141,31 @@ function getFindingValidationError(finding, content, guidelineMap) {
     typeof finding.suggestion !== 'string' ||
     !finding.suggestion.trim() ||
     typeof finding.evidence !== 'string' ||
-    !finding.evidence
+    !finding.evidence.trim()
   ) {
     return 'Missing message, suggestion, or evidence';
   }
 
-  const validEvidence = matchesGuidelineEvidence(
-  finding.evidence,
-  guideline
-);
+  if (!matchesGuidelineEvidence(finding.evidence, guideline)) {
+    return 'Evidence does not match the supplied guideline';
+  }
 
-  if (!validEvidence) {
-  console.warn('[BrandGuard Evidence Mismatch]', {
-    guidelineId: String(guideline.id),
-    guidelineTitle: guideline.title,
-    generatedEvidence: finding.evidence,
-    availableSources: getGuidelineSources(guideline),
-  });
+  if (!ALLOWED_SEVERITIES.includes(finding.severity)) {
+    return 'Invalid finding severity';
+  }
 
-  return 'Evidence does not match the supplied guideline';
-}
+  const sourceType = finding.sourceType;
 
-  const sourceType = finding.sourceType || 'text';
+  if (!['text', 'visual', 'document'].includes(sourceType)) {
+    return `Unsupported sourceType: ${sourceType}`;
+  }
+
+  if (
+    finding.matchedText !== undefined &&
+    typeof finding.matchedText !== 'string'
+  ) {
+    return 'Invalid matchedText type';
+  }
 
   if (sourceType === 'text') {
     if (
@@ -136,25 +182,33 @@ function getFindingValidationError(finding, content, guidelineMap) {
     return null;
   }
 
-  if (['visual', 'document'].includes(sourceType)) {
-    if (
-      typeof finding.visualDescription !== 'string' ||
-      !finding.visualDescription.trim()
-    ) {
-      return 'Missing visualDescription';
+  if (sourceType === 'visual') {
+    if (!file || !file.mimetype.startsWith('image/')) {
+      return 'Visual finding requires an uploaded image';
     }
-
-    if (
-      typeof finding.location !== 'string' ||
-      !finding.location.trim()
-    ) {
-      return 'Missing visual location';
-    }
-
-    return null;
   }
 
-  return `Unsupported sourceType: ${sourceType}`;
+  if (sourceType === 'document') {
+    if (file?.mimetype !== 'application/pdf') {
+      return 'Document finding requires an uploaded PDF';
+    }
+  }
+
+  if (
+    typeof finding.visualDescription !== 'string' ||
+    !finding.visualDescription.trim()
+  ) {
+    return 'Missing visualDescription';
+  }
+
+  if (
+    typeof finding.location !== 'string' ||
+    !finding.location.trim()
+  ) {
+    return 'Missing visual location';
+  }
+
+  return null;
 }
 
 async function validateSuggestedContent(
@@ -194,7 +248,7 @@ VALIDATION RULES:
 8. Every issue must reference an actual supplied guideline ID.
 9. Every matchedText must be copied exactly from the
    proposed revised content.
-10. Every evidence excerpt must be copied exactly from the
+10. Every evidence excerpt must be copied from the
     referenced guideline.
 11. If all checks pass, compliant must be true and issues
     must be an empty array.
@@ -226,12 +280,21 @@ Return ONLY valid JSON:
       typeof validation.compliant !== 'boolean' ||
       !Array.isArray(validation.issues)
     ) {
-      return { status: 'validation_failed', issues: [] };
+      return {
+        status: 'validation_failed',
+        issues: [],
+      };
     }
 
     const validatedIssues = validation.issues
       .filter((issue) => {
-        if (!issue || typeof issue !== 'object') return false;
+        if (
+          !issue ||
+          typeof issue !== 'object' ||
+          Array.isArray(issue)
+        ) {
+          return false;
+        }
 
         const guideline = guidelineMap.get(
           String(issue.guidelineId)
@@ -243,7 +306,7 @@ Return ONLY valid JSON:
           typeof issue.matchedText !== 'string' ||
           !issue.matchedText ||
           typeof issue.evidence !== 'string' ||
-          !issue.evidence ||
+          !issue.evidence.trim() ||
           typeof issue.reason !== 'string' ||
           !issue.reason.trim()
         ) {
@@ -254,8 +317,9 @@ Return ONLY valid JSON:
           return false;
         }
 
-        return getGuidelineSources(guideline).some(
-          (source) => source.includes(issue.evidence)
+        return matchesGuidelineEvidence(
+          issue.evidence,
+          guideline
         );
       })
       .map((issue) => {
@@ -272,32 +336,45 @@ Return ONLY valid JSON:
         };
       });
 
-    if (
-      validation.compliant === false ||
-      validatedIssues.length > 0
-    ) {
+    if (validatedIssues.length > 0) {
       return {
         status: 'rejected',
         issues: validatedIssues,
       };
     }
 
-    if (validation.issues.length !== 0) {
-      return { status: 'validation_failed', issues: [] };
+    if (
+      validation.compliant === false ||
+      validation.issues.length > 0
+    ) {
+      return {
+        status: 'validation_failed',
+        issues: [],
+      };
     }
 
-    return { status: 'validated', issues: [] };
+    return {
+      status: 'validated',
+      issues: [],
+    };
   } catch (error) {
     console.warn(
       'Suggested content validation failed:',
       error.message
     );
 
-    return { status: 'validation_failed', issues: [] };
+    return {
+      status: 'validation_failed',
+      issues: [],
+    };
   }
 }
 
-function buildConsistentSummary(findings, hasAsset, hasText) {
+function buildConsistentSummary(
+  findings,
+  hasAsset,
+  hasText
+) {
   const source = hasAsset && hasText
     ? 'submitted content and asset'
     : hasAsset
@@ -329,7 +406,11 @@ function buildConsistentSummary(findings, hasAsset, hasText) {
   return `The ${source} contains ${findings.length} guideline-supported finding(s) involving ${affectedAreas}. Review the findings for evidence and recommended corrections.`;
 }
 
-async function analyzeWithGemini(content, guidelines, file = null) {
+async function analyzeWithGemini(
+  content,
+  guidelines,
+  file = null
+) {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY') {
@@ -347,11 +428,7 @@ async function analyzeWithGemini(content, guidelines, file = null) {
     throw new Error('Text content or an asset is required.');
   }
 
-  if (
-    file &&
-    !['image/png', 'image/jpeg', 'image/webp', 'application/pdf']
-      .includes(file.mimetype)
-  ) {
+  if (file && !ALLOWED_MIME_TYPES.includes(file.mimetype)) {
     throw new Error('Unsupported asset type.');
   }
 
@@ -416,10 +493,10 @@ ANALYSIS REQUIREMENTS:
 9. Inspect accessibility concerns that can actually be
    established from the supplied asset.
 10. These are inspection categories, not automatic violations.
-   Only flag issues supported by an actual supplied guideline.
+    Only flag issues supported by an actual supplied guideline.
 11. Do not invent brand rules, facts, colours, logos or assets.
 12. Do not claim that an asset violates a guideline unless
-   the supplied guideline supports that conclusion.
+    the supplied guideline supports that conclusion.
 13. Every finding must reference an actual supplied guideline ID.
 14. Evidence must be copied verbatim from ONE continuous
     passage in ONE supplied guideline field.
@@ -448,7 +525,6 @@ ANALYSIS REQUIREMENTS:
 28. Do not invent product capabilities or factual claims.
 29. If no supported violations exist, return an empty findings
     array and retain the original submitted text.
- 
 
 For visual terminology findings:
 
@@ -462,10 +538,17 @@ For visual terminology findings:
 
 - If the context is insufficient to establish the meaning,
   classify it as a potential inconsistency with low severity,
-  or omit the finding when no meaningful conflict exists.    
+  or omit the finding when no meaningful conflict exists.
 
-For asset-only submissions, suggestedContent must be an empty
-string. For text submissions, return the complete revised text.
+SUGGESTED CONTENT REQUIREMENTS:
+
+- For asset-only submissions, suggestedContent must be an
+  empty string.
+- For text submissions, always return the complete revised
+  text, even when no corrections are necessary.
+- If no changes are required, return the original submitted
+  text exactly.
+- Never return an empty suggestedContent for a text submission.
 
 Return ONLY valid JSON:
 
@@ -510,16 +593,16 @@ Return ONLY valid JSON:
 
   if (
     !result ||
-    typeof result.summary !== 'string' ||
+    typeof result !== 'object' ||
     !Array.isArray(result.findings) ||
     typeof result.suggestedContent !== 'string'
   ) {
     throw new Error('Gemini returned an invalid analysis structure.');
   }
 
-  if (submittedContent && !result.suggestedContent.trim()) {
-    throw new Error('Gemini returned an empty suggested correction.');
-  }
+  const correctionUnavailable =
+    Boolean(submittedContent) &&
+    !result.suggestedContent.trim();
 
   const guidelineMap = new Map(
     guidelineContext.map((guideline) => [
@@ -528,66 +611,41 @@ Return ONLY valid JSON:
     ])
   );
 
-  
-console.log(
-  `[BrandGuard Diagnostics] Raw Gemini findings: ${result.findings.length}`
-);
-
-const rejectedFindings = [];
-
-const acceptedRawFindings = result.findings.filter((finding) => {
-  const rejectionReason = getFindingValidationError(
-    finding,
-    submittedContent,
-    guidelineMap
+  const acceptedRawFindings = result.findings.filter(
+    (finding) =>
+      !getFindingValidationError(
+        finding,
+        submittedContent,
+        guidelineMap,
+        file
+      )
   );
 
-  if (rejectionReason) {
-    rejectedFindings.push({
-      guidelineId: finding?.guidelineId || 'missing',
-      sourceType: finding?.sourceType || 'unknown',
-      reason: rejectionReason,
-    });
+  const validatedFindings = acceptedRawFindings.map(
+    (finding) => {
+      const guideline = guidelineMap.get(
+        String(finding.guidelineId)
+      );
 
-    return false;
-  }
-
-  return true;
-});
-
-console.log(
-  `[BrandGuard Diagnostics] Findings passing validation: ${acceptedRawFindings.length}`
-);
-
-if (rejectedFindings.length > 0) {
-  console.warn(
-    '[BrandGuard Diagnostics] Rejected findings:',
-    JSON.stringify(rejectedFindings, null, 2)
+      return {
+        id: randomUUID(),
+        severity: finding.severity,
+        category: ALLOWED_CATEGORIES.includes(guideline.category)
+          ? guideline.category
+          : 'other',
+        sourceType: finding.sourceType,
+        message: finding.message.trim(),
+        guidelineId: String(guideline.id),
+        guideline:
+          guideline.title || guideline.description || '',
+        evidence: finding.evidence,
+        matchedText: finding.matchedText || '',
+        visualDescription: finding.visualDescription || '',
+        location: finding.location || '',
+        suggestion: finding.suggestion.trim(),
+      };
+    }
   );
-}
-
-const validatedFindings = acceptedRawFindings.map((finding) => {
-  const guideline = guidelineMap.get(
-    String(finding.guidelineId)
-  );
-
-  return {
-    id: randomUUID(),
-    severity: ['high', 'medium', 'low'].includes(
-      finding.severity
-    ) ? finding.severity : 'medium',
-    category: guideline.category || 'other',
-    sourceType: finding.sourceType || 'text',
-    message: finding.message.trim(),
-    guidelineId: String(guideline.id),
-    guideline: guideline.title || guideline.description || '',
-    evidence: finding.evidence,
-    matchedText: finding.matchedText || '',
-    visualDescription: finding.visualDescription || '',
-    location: finding.location || '',
-    suggestion: finding.suggestion.trim(),
-  };
-});
 
   const seenFindings = new Set();
 
@@ -600,22 +658,35 @@ const validatedFindings = acceptedRawFindings.map((finding) => {
       finding.visualDescription,
     ].join('::');
 
-    if (seenFindings.has(duplicateKey)) return false;
+    if (seenFindings.has(duplicateKey)) {
+      return false;
+    }
 
     seenFindings.add(duplicateKey);
     return true;
   });
 
   result.summary = buildConsistentSummary(
-  result.findings,
-  Boolean(file),
-  Boolean(submittedContent)
-);
+    result.findings,
+    Boolean(file),
+    Boolean(submittedContent)
+  );
 
+  // Asset-only analysis does not require text corrections.
   if (!submittedContent) {
     result.validationStatus = 'not_applicable';
     result.validationIssues = [];
     result.suggestedContent = '';
+    result.assetReviewed = Boolean(file);
+
+    return result;
+  }
+
+  // Preserve findings if Gemini does not generate a correction.
+  if (correctionUnavailable) {
+    result.validationStatus = 'validation_failed';
+    result.validationIssues = [];
+    result.suggestedContent = submittedContent;
     result.assetReviewed = Boolean(file);
 
     return result;
@@ -633,11 +704,6 @@ const validatedFindings = acceptedRawFindings.map((finding) => {
   result.validationIssues = validationResult.issues;
 
   if (validationResult.status !== 'validated') {
-    console.warn(
-      `BrandGuard correction validation status: ${validationResult.status}. ` +
-      'Original content retained.'
-    );
-
     result.suggestedContent = submittedContent;
   }
 
