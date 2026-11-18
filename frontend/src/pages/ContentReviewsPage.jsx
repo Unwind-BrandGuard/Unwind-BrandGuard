@@ -1,12 +1,15 @@
+
 import { useEffect, useState } from 'react';
 import {
   FileSearch, Plus, Search, AlertTriangle, CheckCircle2,
-  Clock3, ShieldCheck, XCircle, Eye, RefreshCw
+  ShieldCheck, XCircle, Eye, RefreshCw, UploadCloud,
+  FileText, Image as ImageIcon, ExternalLink
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import './ContentReviewsPage.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const STORAGE_BUCKET = 'review-assets';
 
 const initialForm = {
   title: '',
@@ -14,11 +17,19 @@ const initialForm = {
   original_content: '',
 };
 
+const allowedFileTypes = [
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'application/pdf',
+];
+
 export default function ContentReviewsPage({ workspace, role }) {
   const [reviews, setReviews] = useState([]);
   const [guidelines, setGuidelines] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [selected, setSelected] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,6 +53,7 @@ export default function ContentReviewsPage({ workspace, role }) {
         .select('*')
         .eq('workspace_id', workspace.id)
         .eq('status', 'active'),
+
       supabase
         .from('content_reviews')
         .select('*')
@@ -63,9 +75,75 @@ export default function ContentReviewsPage({ workspace, role }) {
     setLoading(false);
   }
 
+  async function openReview(review) {
+    setError('');
+
+    setSelected({
+      ...review,
+      asset_url: null,
+      asset_url_error: false,
+    });
+
+    if (!review.asset_path) return;
+
+    const { data, error: urlError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .createSignedUrl(review.asset_path, 60 * 60);
+
+    if (urlError || !data?.signedUrl) {
+      setSelected((current) =>
+        current?.id === review.id
+          ? { ...current, asset_url_error: true }
+          : current
+      );
+      return;
+    }
+
+    setSelected((current) =>
+      current?.id === review.id
+        ? { ...current, asset_url: data.signedUrl }
+        : current
+    );
+  }
+
+  function handleFileChange(event) {
+    const file = event.target.files?.[0] || null;
+
+    if (!file) {
+      setSelectedFile(null);
+      return;
+    }
+
+    if (!allowedFileTypes.includes(file.type)) {
+      setError('Only PNG, JPG, JPEG, WEBP and PDF files are supported.');
+      event.target.value = '';
+      setSelectedFile(null);
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError('The uploaded file must not exceed 10 MB.');
+      event.target.value = '';
+      setSelectedFile(null);
+      return;
+    }
+
+    setError('');
+    setSelectedFile(file);
+  }
+
   async function submitReview(event) {
     event.preventDefault();
-    if (!form.title.trim() || !form.original_content.trim()) return;
+
+    if (!form.title.trim()) {
+      setError('Please enter a content title.');
+      return;
+    }
+
+    if (!form.original_content.trim() && !selectedFile) {
+      setError('Please enter content or upload an image/PDF.');
+      return;
+    }
 
     if (guidelines.length === 0) {
       setError('Add at least one active brand guideline before submitting content.');
@@ -75,42 +153,58 @@ export default function ContentReviewsPage({ workspace, role }) {
     setSaving(true);
     setError('');
 
+    let uploadedAssetPath = null;
+
     try {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
+
       if (userError) throw userError;
-      if (!userData.user) throw new Error('Your session has expired. Please sign in again.');
 
-  
-const { data: sessionData, error: sessionError } =
-  await supabase.auth.getSession();
+      if (!userData.user) {
+        throw new Error('Your session has expired. Please sign in again.');
+      }
 
-if (sessionError) throw sessionError;
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
 
-const accessToken = sessionData.session?.access_token;
+      if (sessionError) throw sessionError;
 
-if (!accessToken) {
-  throw new Error('Your session has expired. Please sign in again.');
-}
+      const accessToken = sessionData.session?.access_token;
 
-const response = await fetch(`${API_BASE_URL}/api/analyze`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${accessToken}`,
-  },
-  body: JSON.stringify({
-    content: form.original_content.trim(),
-    workspace_id: workspace.id,
-  }),
-});
+      if (!accessToken) {
+        throw new Error('Your session has expired. Please sign in again.');
+      }
 
-const result = await response.json();
+      const requestBody = new FormData();
 
-if (!response.ok || !result.success) {
-  throw new Error(result.message || 'AI analysis failed.');
-}
+      requestBody.append('title', form.title.trim());
+      requestBody.append('content_type', form.content_type);
+      requestBody.append('content', form.original_content.trim());
+      requestBody.append('workspace_id', workspace.id);
 
-const analysis = result.analysis;
+      if (selectedFile) {
+        requestBody.append('file', selectedFile);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: requestBody,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'AI analysis failed.');
+      }
+
+      const analysis = result.analysis;
+      const asset = result.asset || null;
+
+      uploadedAssetPath = asset?.path || null;
 
       const { data, error: insertError } = await supabase
         .from('content_reviews')
@@ -119,21 +213,40 @@ const analysis = result.analysis;
           title: form.title.trim(),
           content_type: form.content_type,
           original_content: form.original_content.trim(),
-          suggested_content: analysis.suggestedContent,
-          findings: analysis.findings,
-          summary: analysis.summary,
+          suggested_content: analysis.suggestedContent || '',
+          findings: analysis.findings || [],
+          summary: analysis.summary || '',
           status: 'pending',
           created_by: userData.user.id,
+          asset_path: asset?.path || null,
+          asset_name: asset?.name || null,
+          asset_mime_type: asset?.mime_type || null,
+          asset_size: asset?.size || null,
         })
         .select()
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        // Remove the uploaded file if saving its review failed.
+        if (uploadedAssetPath) {
+          const { error: cleanupError } = await supabase.storage
+            .from(STORAGE_BUCKET)
+            .remove([uploadedAssetPath]);
+
+          if (cleanupError) {
+            console.error('Asset cleanup failed:', cleanupError.message);
+          }
+        }
+
+        throw insertError;
+      }
 
       setReviews((current) => [data, ...current]);
-      setSelected(data);
       setForm(initialForm);
+      setSelectedFile(null);
       setShowForm(false);
+
+      await openReview(data);
     } catch (err) {
       setError(err.message || 'Unable to submit this review.');
     } finally {
@@ -145,6 +258,7 @@ const analysis = result.analysis;
     if (!canReview) return;
 
     const { data: userData } = await supabase.auth.getUser();
+
     if (!userData.user) {
       setError('Please sign in again.');
       return;
@@ -172,7 +286,8 @@ const analysis = result.analysis;
     setReviews((current) =>
       current.map((item) => item.id === data.id ? data : item)
     );
-    setSelected(data);
+
+    await openReview(data);
   }
 
   const filteredReviews = reviews.filter((review) =>
@@ -194,22 +309,32 @@ const analysis = result.analysis;
     <div className="cr-page">
       <div className="cr-heading">
         <div>
-          <span className="cr-eyebrow"><ShieldCheck size={14} /> BRAND GOVERNANCE</span>
+          <span className="cr-eyebrow">
+            <ShieldCheck size={14} /> BRAND GOVERNANCE
+          </span>
           <h1>Content Reviews</h1>
           <p>Check content against your approved brand standards before publication.</p>
         </div>
+
         {canSubmit && (
-          <button className="cr-primary" onClick={() => {
-            setError('');
-            setShowForm(!showForm);
-            setSelected(null);
-          }}>
+          <button
+            className="cr-primary"
+            onClick={() => {
+              setError('');
+              setShowForm(!showForm);
+              setSelected(null);
+            }}
+          >
             <Plus size={17} /> Submit content
           </button>
         )}
       </div>
 
-      {error && <div className="cr-error"><AlertTriangle size={16} /> {error}</div>}
+      {error && (
+        <div className="cr-error">
+          <AlertTriangle size={16} /> {error}
+        </div>
+      )}
 
       <div className="cr-stats">
         <div><span>Total reviews</span><strong>{reviews.length}</strong></div>
@@ -223,9 +348,18 @@ const analysis = result.analysis;
           <div className="cr-panel-heading">
             <div>
               <h2>Submit content for review</h2>
-              <p>Your content will be checked against active workspace guidelines.</p>
+              <p>Submit text, an image, a PDF, or combine text with an asset.</p>
             </div>
-            <button type="button" className="cr-icon-button" onClick={() => setShowForm(false)}>
+
+            <button
+              type="button"
+              className="cr-icon-button"
+              onClick={() => {
+                setShowForm(false);
+                setSelectedFile(null);
+                setError('');
+              }}
+            >
               <XCircle size={19} />
             </button>
           </div>
@@ -234,7 +368,7 @@ const analysis = result.analysis;
           <input
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            placeholder="e.g. November product launch post"
+            placeholder="e.g. November product launch campaign"
             required
           />
 
@@ -251,17 +385,54 @@ const analysis = result.analysis;
             <option value="other">Other</option>
           </select>
 
-          <label>Content to review</label>
+          <label>Text content <span className="cr-optional">(optional if uploading an asset)</span></label>
           <textarea
             value={form.original_content}
             onChange={(e) => setForm({ ...form, original_content: e.target.value })}
             placeholder="Paste your content here..."
             rows={8}
-            required
           />
+
+          <label>Upload image or PDF</label>
+          <div className="cr-upload-box">
+            <input
+              id="cr-file-upload"
+              type="file"
+              accept=".png,.jpg,.jpeg,.webp,.pdf,image/png,image/jpeg,image/webp,application/pdf"
+              onChange={handleFileChange}
+            />
+
+            <label htmlFor="cr-file-upload" className="cr-upload-label">
+              <UploadCloud size={22} />
+              <strong>{selectedFile ? 'Change selected file' : 'Choose an image or PDF'}</strong>
+              <span>PNG, JPG, WEBP or PDF · Maximum 10 MB</span>
+            </label>
+
+            {selectedFile && (
+              <div className="cr-selected-file">
+                {selectedFile.type === 'application/pdf'
+                  ? <FileText size={18} />
+                  : <ImageIcon size={18} />}
+
+                <span>{selectedFile.name}</span>
+                <button
+                  type="button"
+                  className="cr-remove-file"
+                  onClick={() => {
+                    setSelectedFile(null);
+                    const input = document.getElementById('cr-file-upload');
+                    if (input) input.value = '';
+                  }}
+                >
+                  <XCircle size={17} />
+                </button>
+              </div>
+            )}
+          </div>
 
           <div className="cr-form-footer">
             <span>{guidelines.length} active guideline(s) will be checked</span>
+
             <button className="cr-primary" type="submit" disabled={saving}>
               <FileSearch size={16} />
               {saving ? 'Analysing and saving...' : 'Analyse content'}
@@ -277,6 +448,7 @@ const analysis = result.analysis;
               <h2>Review history</h2>
               <p>Submitted content and review status</p>
             </div>
+
             <button className="cr-icon-button" onClick={loadData} title="Refresh">
               <RefreshCw size={17} />
             </button>
@@ -304,8 +476,8 @@ const analysis = result.analysis;
                   key={review.id}
                   className={`cr-review-item ${selected?.id === review.id ? 'active' : ''}`}
                   onClick={() => {
-                    setSelected(review);
                     setShowForm(false);
+                    openReview(review);
                   }}
                 >
                   <div className="cr-review-item-top">
@@ -314,12 +486,15 @@ const analysis = result.analysis;
                       {review.status.replaceAll('_', ' ')}
                     </span>
                   </div>
+
                   <span className="cr-review-meta">
                     {review.content_type.replaceAll('_', ' ')} ·{' '}
                     {new Date(review.created_at).toLocaleDateString()}
                   </span>
+
                   <span className="cr-review-meta">
                     {(review.findings || []).length} finding(s)
+                    {review.asset_path ? ' · Asset attached' : ''}
                   </span>
                 </button>
               ))}
@@ -340,8 +515,12 @@ const analysis = result.analysis;
                 <div>
                   <span className="cr-eyebrow">REVIEW DETAILS</span>
                   <h2>{selected.title}</h2>
-                  <p>{selected.content_type.replaceAll('_', ' ')} · {new Date(selected.created_at).toLocaleString()}</p>
+                  <p>
+                    {selected.content_type.replaceAll('_', ' ')} ·{' '}
+                    {new Date(selected.created_at).toLocaleString()}
+                  </p>
                 </div>
+
                 <span className={`cr-status status-${selected.status}`}>
                   {selected.status.replaceAll('_', ' ')}
                 </span>
@@ -352,13 +531,82 @@ const analysis = result.analysis;
                 <span>{selected.summary || 'No analysis summary available.'}</span>
               </div>
 
-              <h3>Original content</h3>
-              <div className="cr-content-box">{selected.original_content}</div>
+              {selected.asset_path && (
+                <>
+                  <h3>Uploaded asset</h3>
 
-              <h3>Suggested correction</h3>
-              <div className="cr-content-box cr-suggestion">
-                {selected.suggested_content || selected.original_content}
+                  <div className="cr-asset-box">
+                    <div className="cr-asset-meta">
+                      {selected.asset_mime_type === 'application/pdf'
+                        ? <FileText size={19} />
+                        : <ImageIcon size={19} />}
+
+                      <div>
+                        <strong>{selected.asset_name || 'Uploaded asset'}</strong>
+                        <span>
+                          {selected.asset_mime_type || 'File'} ·{' '}
+                          {selected.asset_size
+                            ? `${(selected.asset_size / (1024 * 1024)).toFixed(2)} MB`
+                            : ''}
+                        </span>
+                      </div>
+                    </div>
+
+                    {selected.asset_url_error && (
+                      <p className="cr-asset-error">
+                        Could not load this asset. Check storage permissions.
+                      </p>
+                    )}
+
+                    {selected.asset_url && (
+                      <>
+                        {selected.asset_mime_type?.startsWith('image/') && (
+                          <img
+                            className="cr-asset-image"
+                            src={selected.asset_url}
+                            alt={selected.asset_name || 'Uploaded review asset'}
+                          />
+                        )}
+
+                        {selected.asset_mime_type === 'application/pdf' && (
+                          <iframe
+                            className="cr-asset-pdf"
+                            src={selected.asset_url}
+                            title={selected.asset_name || 'Uploaded PDF'}
+                          />
+                        )}
+
+                        <a
+                          className="cr-asset-open"
+                          href={selected.asset_url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Open original file <ExternalLink size={14} />
+                        </a>
+                      </>
+                    )}
+
+                    {!selected.asset_url && !selected.asset_url_error && (
+                      <span className="cr-asset-loading">Loading secure preview...</span>
+                    )}
+                  </div>
+                </>
+              )}
+
+              <h3>Original content</h3>
+              <div className="cr-content-box">
+                {selected.original_content || 'No separate text content was submitted.'}
               </div>
+
+              {selected.original_content && (
+                <>
+                  <h3>Suggested correction</h3>
+                  <div className="cr-content-box cr-suggestion">
+                    {selected.suggested_content || selected.original_content}
+                  </div>
+                </>
+              )}
 
               <div className="cr-findings-heading">
                 <h3>Findings</h3>
@@ -375,16 +623,50 @@ const analysis = result.analysis;
                   {selected.findings.map((finding) => (
                     <article className="cr-finding" key={finding.id}>
                       <div className="cr-finding-top">
-                        <strong>{finding.category}</strong>
+                        <strong>{finding.category?.replaceAll('_', ' ')}</strong>
                         <span className={severityClass(finding.severity)}>
                           {finding.severity}
                         </span>
                       </div>
+
+                      {finding.sourceType && (
+                        <span className="cr-finding-source">
+                          {finding.sourceType === 'visual'
+                            ? 'Visual finding'
+                            : finding.sourceType === 'document'
+                              ? 'PDF/document finding'
+                              : 'Text finding'}
+                        </span>
+                      )}
+
                       <p>{finding.message}</p>
+
+                      {(finding.matchedText || finding.visualDescription) && (
+                        <div className="cr-observed">
+                          <strong>
+                            {finding.sourceType === 'visual' ||
+                            finding.sourceType === 'document'
+                              ? 'Observed visual evidence'
+                              : 'Matched content'}
+                          </strong>
+
+                          <p>
+                            {finding.matchedText || finding.visualDescription}
+                          </p>
+
+                          {finding.location && (
+                            <span className="cr-location">
+                              Location: {finding.location}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
                       <div className="cr-evidence">
                         <strong>Matched guideline: {finding.guideline}</strong>
                         <p>{finding.evidence}</p>
                       </div>
+
                       <div className="cr-recommendation">
                         <strong>Suggested action</strong>
                         <p>{finding.suggestion}</p>
@@ -396,16 +678,31 @@ const analysis = result.analysis;
 
               {canReview && !['approved', 'rejected'].includes(selected.status) && (
                 <div className="cr-actions">
-                  <button className="cr-secondary" onClick={() => updateStatus(selected, 'in_review')}>
+                  <button
+                    className="cr-secondary"
+                    onClick={() => updateStatus(selected, 'in_review')}
+                  >
                     <Eye size={15} /> Mark in review
                   </button>
-                  <button className="cr-secondary" onClick={() => updateStatus(selected, 'changes_requested')}>
+
+                  <button
+                    className="cr-secondary"
+                    onClick={() => updateStatus(selected, 'changes_requested')}
+                  >
                     <AlertTriangle size={15} /> Request changes
                   </button>
-                  <button className="cr-primary" onClick={() => updateStatus(selected, 'approved')}>
+
+                  <button
+                    className="cr-primary"
+                    onClick={() => updateStatus(selected, 'approved')}
+                  >
                     <CheckCircle2 size={15} /> Approve
                   </button>
-                  <button className="cr-danger" onClick={() => updateStatus(selected, 'rejected')}>
+
+                  <button
+                    className="cr-danger"
+                    onClick={() => updateStatus(selected, 'rejected')}
+                  >
                     <XCircle size={15} /> Reject
                   </button>
                 </div>
