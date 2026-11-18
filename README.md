@@ -327,6 +327,27 @@ Found a vulnerability? Please report it privately to the maintainers rather than
 
 ---
 
+## 📡 Uptime Monitoring
+
+Unwind BrandGuard uses [UptimeRobot](https://uptimerobot.com/) to monitor the availability of its production services.
+
+| Monitoring Feature | Description |
+|---|---|
+| **Backend Monitoring** | Tracks backend health through the `/api/health` endpoint |
+| **Frontend Monitoring** | Monitors the production frontend |
+| **Automated Health Checks** | HTTP(S) checks every 5 minutes |
+| **Email Notifications** | Alerts when service downtime is detected |
+| **Recovery Detection** | Detects when services become available again |
+
+**Monitored Services:**
+
+- Backend: https://unwind-brandguard.onrender.com/api/health
+- Frontend: https://unwind-brand-guard.vercel.app/
+
+This monitoring setup helps identify service interruptions and track production availability.
+
+---
+
 ## 🩺 Troubleshooting
 
 | Symptom | Likely cause and fix |
