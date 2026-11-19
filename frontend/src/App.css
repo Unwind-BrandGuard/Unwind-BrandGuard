@@ -1912,3 +1912,41 @@ footer span { margin: 0 7px; }
   font-size: 11px;
   font-weight: 800;
 }
+
+/* ROUND 3 — GUIDED TOUR */
+
+.tour-help-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px solid rgba(141, 218, 177, 0.25);
+  border-radius: 10px;
+  background: rgba(141, 218, 177, 0.08);
+  color: #a9dec0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.tour-help-button:hover {
+  background: rgba(141, 218, 177, 0.16);
+  transform: translateY(-1px);
+}
+
+.tour-help-button:focus-visible {
+  outline: 2px solid #8ddab1;
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .tour-help-button {
+    padding: 9px;
+  }
+
+  .tour-help-button span {
+    display: none;
+  }
+}
