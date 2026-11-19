@@ -4,6 +4,8 @@ import {
   CheckCircle2, Clock3, FileSearch, RefreshCw
 } from 'lucide-react';
 import { supabase } from '../supabase';
+import ErrorState from '../components/feedback/ErrorState'
+import { getFriendlyError } from '../utils/errorMessages'
 import './InsightsPage.css';
 
 export default function InsightsPage({ workspace }) {
@@ -15,25 +17,37 @@ export default function InsightsPage({ workspace }) {
     if (workspace?.id) loadInsights();
   }, [workspace?.id]);
 
-  async function loadInsights() {
-    setLoading(true);
-    setError('');
 
+async function loadInsights() {
+  if (!workspace?.id) return
+
+  setLoading(true)
+  setError('')
+
+  try {
     const { data, error: queryError } = await supabase
       .from('content_reviews')
       .select('id, title, status, findings, created_at, reviewed_at')
       .eq('workspace_id', workspace.id)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
 
-    if (queryError) {
-      setError(queryError.message);
-      setReviews([]);
-    } else {
-      setReviews(data || []);
-    }
+    if (queryError) throw queryError
 
-    setLoading(false);
+    setReviews(data || [])
+  } catch (err) {
+    console.error('Insights loading failed:', err)
+
+    setError(
+      getFriendlyError(
+        err,
+        'We could not load your brand insights. Please try again.'
+      )
+    )
+  } finally {
+    setLoading(false)
   }
+}
+
 
   const stats = useMemo(() => {
     const total = reviews.length;
@@ -92,6 +106,19 @@ export default function InsightsPage({ workspace }) {
     return <div className="ins-loading">Loading governance insights...</div>;
   }
 
+  if (error) {
+  return (
+    <div className="ins-page">
+      <ErrorState
+        title="Insights are unavailable"
+        message={error}
+        onRetry={loadInsights}
+        retrying={loading}
+      />
+    </div>
+  )
+}
+
   return (
     <div className="ins-page">
       <div className="page-heading ins-heading">
@@ -106,7 +133,7 @@ export default function InsightsPage({ workspace }) {
         </button>
       </div>
 
-      {error && <div className="ins-error">{error}</div>}
+      
 
       <div className="ins-stats">
         <article className="ins-card">
