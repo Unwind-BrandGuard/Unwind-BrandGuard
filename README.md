@@ -68,9 +68,25 @@ Brand consistency breaks down quietly. Different teams, channels, and writers in
 - Receive actionable suggestions to improve the content
 
 ### ✅ Content Review Management
-- Review AI-generated analysis results in one place
-- Manage the review workflow
+
+- Review AI-generated analysis results for text, images, and PDF documents in one place
+- Manage the review workflow, including approvals, rejections, and change requests
 - Keep persistent review records for later reference
+
+### 1. Multimodal Content Review (Image and PDF Analysis)
+
+Enhanced Unwind BrandGuard with multimodal AI-powered content analysis, allowing users to review not only text but also visual and document-based content against their approved brand guidelines.
+
+**Key enhancements:**
+
+- **Image Analysis:** Supports PNG, JPG, JPEG, and WEBP uploads to identify visual brand inconsistencies, terminology issues, accessibility concerns, and other guideline violations.
+- **PDF Analysis:** Enables users to submit PDF documents for content and visual compliance analysis.
+- **Combined Analysis:** Allows users to submit text alongside an image or PDF for a more comprehensive review.
+- **Evidence-Based Findings:** Displays detected issues with supporting evidence, guideline references, severity levels, and recommended corrections.
+- **Secure Asset Handling:** Uses authenticated uploads, workspace-based access controls, private Supabase Storage, and signed URLs for viewing uploaded assets.
+- **Unified Review Workflow:** Saves multimodal analysis results in the existing content review history for further human evaluation and approval.
+
+This improvement extends brand governance beyond text-only checking, helping teams identify both written and visual inconsistencies before publishing content.
 
 ### 👥 Team Collaboration
 - Invite members by email (delivered via **Brevo**)
