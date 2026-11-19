@@ -13,7 +13,8 @@ import {
   X,
   AlertTriangle
 } from 'lucide-react'
-
+import GuidedTour from './components/GuidedTour'
+import { CircleHelp } from 'lucide-react'
 import { supabase } from './supabase'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
@@ -44,6 +45,8 @@ const navigation = [
 export default function App() {
   const [session, setSession] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [tourRestart, setTourRestart] = useState(0)
+const [tourRunning, setTourRunning] = useState(false)
 
   const [invitationToken, setInvitationToken] = useState(
     () => new URLSearchParams(window.location.search).get('token') || ''
@@ -142,7 +145,15 @@ export default function App() {
   // -----------------------------------------
   // WORKSPACE LOADING
   // -----------------------------------------
+useEffect(() => {
+  if (!tourRunning) return
 
+  if (window.matchMedia('(max-width: 768px)').matches) {
+    setMenuOpen(true)
+  }
+
+  return () => setMenuOpen(false)
+}, [tourRunning])
   useEffect(() => {
     const user = session?.user
 
@@ -491,6 +502,14 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      {workspace && !workspaceLoading && !workspaceError && (
+  <GuidedTour
+    userId={session.user.id}
+    workspaceId={workspace.id}
+    restartSignal={tourRestart}
+    onRunningChange={setTourRunning}
+  />
+)}
       <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="brand">
           <div className="brand-icon">
@@ -524,6 +543,14 @@ export default function App() {
           {navigation.map(item => (
             <button
               key={item.name}
+              data-tour={{
+  'Overview': 'overview',
+  'Brand Guidelines': 'guidelines',
+  'Content Reviews': 'reviews',
+  'Insights': 'insights',
+  'Team Members': 'members',
+  'Settings': 'settings'
+}[item.name]}
               className={`nav-item ${active === item.name ? 'selected' : ''}`}
               onClick={() => {
                 setActive(item.name)
@@ -588,7 +615,18 @@ export default function App() {
           <div className="breadcrumb">
             BrandGuard <span>/</span> {active}
           </div>
-
+<button
+  type="button"
+  className="tour-help-button"
+  onClick={() => {
+    setActive('Overview')
+    setTourRestart(value => value + 1)
+  }}
+  title="Take a tour of BrandGuard"
+>
+  <CircleHelp size={17} />
+  <span>Take a Tour</span>
+</button>
           <div className="top-status">
             <span className="status-dot" />
             Authenticated workspace
