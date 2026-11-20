@@ -193,7 +193,7 @@ export default function TermsOfServicePage({ onBack }) {
         <section>
           <h2>11. Disclaimer of Warranties</h2>
           <p>
-            The platform is provided on an Ã¢â‚¬Å“as availableÃ¢â‚¬Â basis.
+            The platform is provided on an "as available" basis.
             To the extent permitted by applicable law, no warranties
             are made that the service will always be accurate,
             uninterrupted, secure or suitable for every purpose.
@@ -237,7 +237,7 @@ export default function TermsOfServicePage({ onBack }) {
       </article>
 
       <footer className="legal-footer">
-        UNWIND BRANDGUARD Ã‚Â· AI-ASSISTED, HUMAN-CONTROLLED GOVERNANCE
+        UNWIND BRANDGUARD · AI-ASSISTED, HUMAN-CONTROLLED GOVERNANCE
       </footer>
     </main>
   )
