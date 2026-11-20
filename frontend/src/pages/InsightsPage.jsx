@@ -1,228 +1,665 @@
-import { useEffect, useMemo, useState } from 'react';
+
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ChartNoAxesCombined, Activity, ShieldCheck, AlertTriangle,
-  CheckCircle2, Clock3, FileSearch, RefreshCw
-} from 'lucide-react';
-import { supabase } from '../supabase';
-import './InsightsPage.css';
+  Activity,
+  AlertTriangle,
+  ChartNoAxesCombined,
+  Clock3,
+  FileSearch,
+  RefreshCw,
+  ShieldCheck,
+} from 'lucide-react'
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+
+import { supabase } from '../supabase'
+import ErrorState from '../components/feedback/ErrorState'
+import { getFriendlyError } from '../utils/errorMessages'
+import './InsightsPage.css'
+
+const CHART_COLORS = {
+  approved: '#16f5d0',
+  pending: '#7ca7ff',
+  changes_requested: '#f5c16c',
+  rejected: '#ff8585',
+}
+
+const TOOLTIP_STYLE = {
+  background: '#101e1b',
+  border: '1px solid #294c42',
+  borderRadius: 10,
+  color: '#eafffa',
+}
+
+function dateKey(date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-')
+}
+
+function formatStatus(status) {
+  return String(status || 'unknown').replaceAll('_', ' ')
+}
 
 export default function InsightsPage({ workspace }) {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [reviews, setReviews] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [dateRange, setDateRange] = useState(30)
+  const [refreshing, setRefreshing] = useState(false)
 
-  useEffect(() => {
-    if (workspace?.id) loadInsights();
-  }, [workspace?.id]);
+  const workspaceId = workspace?.id
 
-  async function loadInsights() {
-    setLoading(true);
-    setError('');
-
-    const { data, error: queryError } = await supabase
-      .from('content_reviews')
-      .select('id, title, status, findings, created_at, reviewed_at')
-      .eq('workspace_id', workspace.id)
-      .order('created_at', { ascending: false });
-
-    if (queryError) {
-      setError(queryError.message);
-      setReviews([]);
-    } else {
-      setReviews(data || []);
+  const loadInsights = useCallback(async (showLoader = true) => {
+    if (!workspaceId) {
+      setReviews([])
+      setLoading(false)
+      return
     }
 
-    setLoading(false);
-  }
+    if (showLoader) setLoading(true)
+    else setRefreshing(true)
 
+    setError('')
+
+    try {
+      const { data, error: queryError } = await supabase
+        .from('content_reviews')
+        .select('id, title, status, findings, created_at, reviewed_at')
+        .eq('workspace_id', workspaceId)
+        .order('created_at', { ascending: false })
+
+      if (queryError) throw queryError
+
+      setReviews(data || [])
+    } catch (err) {
+      console.error('Insights loading failed:', err)
+
+      setError(
+        getFriendlyError(
+          err,
+          'We could not load your brand insights. Please try again.'
+        )
+      )
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [workspaceId])
+
+  useEffect(() => {
+    loadInsights()
+  }, [loadInsights])
+
+  // Selected date range
+  const filteredReviews = useMemo(() => {
+    const cutoff = new Date()
+    cutoff.setHours(0, 0, 0, 0)
+    cutoff.setDate(cutoff.getDate() - dateRange + 1)
+
+    return reviews.filter((review) => {
+      const date = new Date(review.created_at)
+
+      return (
+        !Number.isNaN(date.getTime()) &&
+        date >= cutoff
+      )
+    })
+  }, [reviews, dateRange])
+
+  // Summary statistics
   const stats = useMemo(() => {
-    const total = reviews.length;
-    const pending = reviews.filter((r) =>
-      ['pending', 'in_review'].includes(r.status)
-    ).length;
+    const total = filteredReviews.length
 
-    const approved = reviews.filter((r) => r.status === 'approved').length;
-    const rejected = reviews.filter((r) => r.status === 'rejected').length;
-    const changes = reviews.filter((r) =>
-      r.status === 'changes_requested'
-    ).length;
+    const approved = filteredReviews.filter(
+      (review) => review.status === 'approved'
+    ).length
 
-    const decisions = approved + rejected + changes;
-    const approvalRate = decisions
-      ? Math.round((approved / decisions) * 100)
-      : 0;
+    const rejected = filteredReviews.filter(
+      (review) => review.status === 'rejected'
+    ).length
 
-    const findings = reviews.flatMap((r) =>
-      Array.isArray(r.findings) ? r.findings : []
-    );
+    const changes = filteredReviews.filter(
+      (review) => review.status === 'changes_requested'
+    ).length
 
-    const categories = {};
+    const pending = filteredReviews.filter(
+      (review) => ['pending', 'in_review'].includes(review.status)
+    ).length
+
+    const decisions = approved + rejected + changes
+
+    const findings = filteredReviews.flatMap((review) =>
+      Array.isArray(review.findings) ? review.findings : []
+    )
+
+    const categories = {}
+
     findings.forEach((finding) => {
-      const category = finding.category || 'other';
-      categories[category] = (categories[category] || 0) + 1;
-    });
+      const category = String(finding?.category || 'other')
+      categories[category] = (categories[category] || 0) + 1
+    })
 
     const categoryList = Object.entries(categories)
-      .sort((a, b) => b[1] - a[1]);
+      .map(([name, count]) => ({
+        name: name.replaceAll('_', ' '),
+        count,
+      }))
+      .sort((a, b) => b.count - a.count)
 
     const highSeverity = findings.filter(
-      (f) => f.severity === 'high'
-    ).length;
+      (finding) => finding?.severity === 'high'
+    ).length
 
     return {
       total,
-      pending,
       approved,
       rejected,
       changes,
+      pending,
       decisions,
-      approvalRate,
+      approvalRate: decisions
+        ? Math.round((approved / decisions) * 100)
+        : null,
       findingCount: findings.length,
       highSeverity,
       categoryList,
-    };
-  }, [reviews]);
+    }
+  }, [filteredReviews])
 
-  const maxCategoryCount = Math.max(
-    1,
-    ...stats.categoryList.map((item) => item[1])
-  );
+  // Activity graph: actual daily submissions
+  const activityData = useMemo(() => {
+    const days = []
+
+    for (let i = dateRange - 1; i >= 0; i--) {
+      const date = new Date()
+      date.setHours(0, 0, 0, 0)
+      date.setDate(date.getDate() - i)
+
+      days.push({
+        key: dateKey(date),
+        date: date.toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+        }),
+        submissions: 0,
+      })
+    }
+
+    const lookup = new Map(
+      days.map((day) => [day.key, day])
+    )
+
+    filteredReviews.forEach((review) => {
+      const date = new Date(review.created_at)
+      const day = lookup.get(dateKey(date))
+
+      if (day) day.submissions += 1
+    })
+
+    return days
+  }, [filteredReviews, dateRange])
+
+  // Donut chart
+  const outcomeData = useMemo(() => [
+    {
+      name: 'Approved',
+      value: stats.approved,
+      color: CHART_COLORS.approved,
+    },
+    {
+      name: 'Pending / in review',
+      value: stats.pending,
+      color: CHART_COLORS.pending,
+    },
+    {
+      name: 'Changes requested',
+      value: stats.changes,
+      color: CHART_COLORS.changes_requested,
+    },
+    {
+      name: 'Rejected',
+      value: stats.rejected,
+      color: CHART_COLORS.rejected,
+    },
+  ].filter((item) => item.value > 0), [stats])
+
+  const classifiedOutcomes = outcomeData.reduce(
+    (sum, item) => sum + item.value,
+    0
+  )
+
+  const otherCount = Math.max(0, stats.total - classifiedOutcomes)
+
+  if (otherCount > 0) {
+    outcomeData.push({
+      name: 'Other',
+      value: otherCount,
+      color: '#9baaa7',
+    })
+  }
 
   if (loading) {
-    return <div className="ins-loading">Loading governance insights...</div>;
+    return (
+      <div className="ins-loading">
+        <RefreshCw size={19} className="ins-spinning" />
+        Loading governance insights...
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="ins-page">
+        <ErrorState
+          title="Insights are unavailable"
+          message={error}
+          onRetry={() => loadInsights()}
+          retrying={loading}
+        />
+      </div>
+    )
   }
 
   return (
     <div className="ins-page">
+      {/* Dashboard heading */}
       <div className="page-heading ins-heading">
         <div>
-          <div className="eyebrow">GOVERNANCE INTELLIGENCE</div>
-          <h1>Insights</h1>
-          <p>Understand recurring brand inconsistencies and review outcomes.</p>
+          <div className="eyebrow">
+            GOVERNANCE INTELLIGENCE
+          </div>
+
+          <h1>Brand Intelligence</h1>
+
+          <p>
+            Monitor content reviews, brand violations,
+            and compliance decisions.
+          </p>
         </div>
 
-        <button className="ins-refresh" onClick={loadInsights}>
-          <RefreshCw size={16} /> Refresh
-        </button>
+        <div className="ins-toolbar">
+          <div
+            className="ins-date-filters"
+            role="group"
+            aria-label="Analytics date range"
+          >
+            {[7, 30, 90].map((days) => (
+              <button
+                key={days}
+                type="button"
+                className={`ins-filter-btn ${
+                  dateRange === days ? 'active' : ''
+                }`}
+                aria-pressed={dateRange === days}
+                onClick={() => setDateRange(days)}
+              >
+                {days}D
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="ins-refresh"
+            onClick={() => loadInsights(false)}
+            disabled={refreshing}
+          >
+            <RefreshCw
+              size={16}
+              className={refreshing ? 'ins-spinning' : ''}
+            />
+            {refreshing ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
-      {error && <div className="ins-error">{error}</div>}
-
+      {/* KPI cards */}
       <div className="ins-stats">
         <article className="ins-card">
           <span>Total reviews</span>
-          <div><FileSearch size={19} /><strong>{stats.total}</strong></div>
-          <small>Content submissions</small>
+
+          <div>
+            <FileSearch size={20} />
+            <strong>{stats.total}</strong>
+          </div>
+
+          <small>Submissions in selected period</small>
         </article>
 
         <article className="ins-card">
           <span>Pending reviews</span>
-          <div><Clock3 size={19} /><strong>{stats.pending}</strong></div>
-          <small>Awaiting final decisions</small>
+
+          <div>
+            <Clock3 size={20} />
+            <strong>{stats.pending}</strong>
+          </div>
+
+          <small>Awaiting a final decision</small>
         </article>
 
         <article className="ins-card">
           <span>Approval rate</span>
-          <div><ShieldCheck size={19} /><strong>{stats.approvalRate}%</strong></div>
-          <small>{stats.decisions} completed decisions</small>
+
+          <div>
+            <ShieldCheck size={20} />
+            <strong>
+              {stats.approvalRate === null
+                ? '—'
+                : `${stats.approvalRate}%`}
+            </strong>
+          </div>
+
+          <small>
+            {stats.decisions} completed decisions
+          </small>
         </article>
 
         <article className="ins-card">
           <span>Detected issues</span>
-          <div><AlertTriangle size={19} /><strong>{stats.findingCount}</strong></div>
-          <small>{stats.highSeverity} high-severity findings</small>
+
+          <div>
+            <AlertTriangle size={20} />
+            <strong>{stats.findingCount}</strong>
+          </div>
+
+          <small>
+            {stats.highSeverity} high-severity findings
+          </small>
         </article>
       </div>
 
+      {/* Daily activity */}
+      <section className="content-panel ins-panel ins-activity-panel">
+        <div className="ins-panel-heading">
+          <div>
+            <h2>Content review activity</h2>
+            <p>
+              Daily submissions over the last {dateRange} days
+            </p>
+          </div>
+
+          <Activity size={20} />
+        </div>
+
+        {stats.total === 0 ? (
+          <div className="ins-empty ins-chart-empty">
+            No content reviews submitted in this period.
+          </div>
+        ) : (
+          <div className="ins-chart-container">
+            <ResponsiveContainer width="100%" height={270}>
+              <AreaChart
+                data={activityData}
+                margin={{
+                  top: 10,
+                  right: 15,
+                  left: -15,
+                  bottom: 0,
+                }}
+              >
+                <defs>
+                  <linearGradient
+                    id="insActivityGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="#16f5d0"
+                      stopOpacity={0.35}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="#16f5d0"
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                </defs>
+
+                <CartesianGrid
+                  stroke="#263d38"
+                  strokeDasharray="3 4"
+                  vertical={false}
+                />
+
+                <XAxis
+                  dataKey="date"
+                  stroke="#829994"
+                  tick={{ fontSize: 11 }}
+                  minTickGap={25}
+                  tickLine={false}
+                  axisLine={false}
+                />
+
+                <YAxis
+                  stroke="#829994"
+                  tick={{ fontSize: 11 }}
+                  allowDecimals={false}
+                  tickLine={false}
+                  axisLine={false}
+                  width={35}
+                />
+
+                <Tooltip
+                  contentStyle={TOOLTIP_STYLE}
+                  cursor={{ stroke: '#36564d' }}
+                />
+
+                <Area
+                  type="monotone"
+                  dataKey="submissions"
+                  name="Submissions"
+                  stroke="#16f5d0"
+                  strokeWidth={3}
+                  fill="url(#insActivityGradient)"
+                  activeDot={{ r: 5 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </section>
+
+      {/* Outcomes and violations */}
       <div className="ins-grid">
         <section className="content-panel ins-panel">
           <div className="ins-panel-heading">
             <div>
-              <h2>Recurring brand violations</h2>
-              <p>Most frequently detected issue categories</p>
+              <h2>Review outcomes</h2>
+              <p>Status distribution for this period</p>
             </div>
-            <ChartNoAxesCombined size={20} />
+
+            <ShieldCheck size={20} />
           </div>
 
-          {stats.categoryList.length === 0 ? (
-            <div className="ins-empty">
-              No findings recorded yet. Submit content for brand analysis.
+          {outcomeData.length === 0 ? (
+            <div className="ins-empty ins-chart-empty">
+              No review outcomes recorded yet.
             </div>
           ) : (
-            <div className="ins-bars">
-              {stats.categoryList.map(([category, count]) => (
-                <div className="ins-bar-row" key={category}>
-                  <div className="ins-bar-label">
-                    <span>{category.replaceAll('_', ' ')}</span>
-                    <strong>{count}</strong>
-                  </div>
-                  <div className="ins-bar-track">
-                    <div
-                      className="ins-bar-fill"
-                      style={{
-                        width: `${(count / maxCategoryCount) * 100}%`,
-                      }}
-                    />
-                  </div>
+            <>
+              <div className="ins-donut-wrap">
+                <ResponsiveContainer width="100%" height={230}>
+                  <PieChart>
+                    <Pie
+                      data={outcomeData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={65}
+                      outerRadius={90}
+                      paddingAngle={3}
+                      stroke="none"
+                    >
+                      {outcomeData.map((entry) => (
+                        <Cell
+                          key={entry.name}
+                          fill={entry.color}
+                        />
+                      ))}
+                    </Pie>
+
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                <div className="ins-donut-center">
+                  <strong>{stats.total}</strong>
+                  <span>Reviews</span>
                 </div>
-              ))}
-            </div>
+              </div>
+
+              <div className="ins-chart-legend">
+                {outcomeData.map((item) => (
+                  <div key={item.name}>
+                    <span>
+                      <i
+                        style={{
+                          background: item.color,
+                        }}
+                      />
+                      {item.name}
+                    </span>
+
+                    <strong>{item.value}</strong>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </section>
 
         <section className="content-panel ins-panel">
           <div className="ins-panel-heading">
             <div>
-              <h2>Review outcomes</h2>
-              <p>Current workspace decision breakdown</p>
+              <h2>Recurring brand violations</h2>
+              <p>Most frequently detected issue categories</p>
             </div>
-            <Activity size={20} />
+
+            <ChartNoAxesCombined size={20} />
           </div>
 
-          <div className="ins-outcomes">
-            <div>
-              <span><CheckCircle2 size={16} /> Approved</span>
-              <strong>{stats.approved}</strong>
+          {stats.categoryList.length === 0 ? (
+            <div className="ins-empty ins-chart-empty">
+              No brand violations recorded for this period.
             </div>
-            <div>
-              <span><AlertTriangle size={16} /> Changes requested</span>
-              <strong>{stats.changes}</strong>
+          ) : (
+            <div className="ins-violations-chart">
+              <ResponsiveContainer
+                width="100%"
+                height={Math.max(
+                  240,
+                  Math.min(stats.categoryList.length, 8) * 46
+                )}
+              >
+                <BarChart
+                  data={stats.categoryList.slice(0, 8)}
+                  layout="vertical"
+                  margin={{
+                    top: 5,
+                    right: 20,
+                    bottom: 5,
+                    left: 10,
+                  }}
+                >
+                  <CartesianGrid
+                    stroke="#263d38"
+                    strokeDasharray="3 4"
+                    horizontal={false}
+                  />
+
+                  <XAxis
+                    type="number"
+                    allowDecimals={false}
+                    stroke="#829994"
+                    tick={{ fontSize: 11 }}
+                  />
+
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={110}
+                    stroke="#829994"
+                    tick={{ fontSize: 11 }}
+                    tickFormatter={(value) =>
+                      value.length > 16
+                        ? `${value.slice(0, 15)}…`
+                        : value
+                    }
+                  />
+
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+
+                  <Bar
+                    dataKey="count"
+                    name="Findings"
+                    fill="#16cbb0"
+                    radius={[0, 6, 6, 0]}
+                    maxBarSize={24}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-            <div>
-              <span><Clock3 size={16} /> Pending / in review</span>
-              <strong>{stats.pending}</strong>
-            </div>
-            <div>
-              <span><ShieldCheck size={16} /> Rejected</span>
-              <strong>{stats.rejected}</strong>
-            </div>
-          </div>
+          )}
         </section>
       </div>
 
+      {/* Recent reviews */}
       <section className="content-panel ins-panel ins-recent">
         <div className="ins-panel-heading">
           <div>
             <h2>Recent review activity</h2>
-            <p>Latest content submissions in this workspace</p>
+            <p>Latest content submissions in this period</p>
           </div>
+
           <FileSearch size={20} />
         </div>
 
-        {reviews.length === 0 ? (
+        {filteredReviews.length === 0 ? (
           <div className="ins-empty">
-            No review activity yet. Your workspace analytics will appear here.
+            No review activity in the selected period.
           </div>
         ) : (
           <div className="ins-recent-list">
-            {reviews.slice(0, 5).map((review) => (
-              <div className="ins-recent-item" key={review.id}>
+            {filteredReviews.slice(0, 5).map((review) => (
+              <div
+                className="ins-recent-item"
+                key={review.id}
+              >
                 <div>
-                  <strong>{review.title}</strong>
-                  <small>{new Date(review.created_at).toLocaleString()}</small>
+                  <strong>
+                    {review.title || 'Untitled review'}
+                  </strong>
+
+                  <small>
+                    {new Date(
+                      review.created_at
+                    ).toLocaleString('en-IN')}
+                  </small>
                 </div>
-                <span className={`ins-status ins-status-${review.status}`}>
-                  {review.status.replaceAll('_', ' ')}
+
+                <span
+                  className={`ins-status ins-status-${
+                    review.status || 'unknown'
+                  }`}
+                >
+                  {formatStatus(review.status)}
                 </span>
               </div>
             ))}
@@ -231,9 +668,11 @@ export default function InsightsPage({ workspace }) {
       </section>
 
       <p className="ins-disclaimer">
-        Insights are calculated from recorded content reviews and AI findings.
-        They represent detected issues, not a guarantee of brand compliance.
+        Analytics are calculated from recorded content reviews
+        and AI findings. Approval rate represents approved
+        decisions divided by all completed decisions.
+        These metrics do not guarantee brand compliance.
       </p>
     </div>
-  );
+  )
 }

@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react'
 import { Settings, Users, ShieldCheck, Save } from 'lucide-react'
 import { supabase } from '../supabase'
+import { useToast } from '../components/feedback/ToastProvider'
+import { getFriendlyError } from '../utils/errorMessages'
 import './SettingsPage.css'
 
 export default function SettingsPage({ workspace, role, onWorkspaceUpdate }) {
@@ -9,6 +11,8 @@ export default function SettingsPage({ workspace, role, onWorkspaceUpdate }) {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+
+  const toast = useToast()
 
   const canRename = ['owner', 'admin'].includes(role)
 
@@ -58,10 +62,13 @@ export default function SettingsPage({ workspace, role, onWorkspaceUpdate }) {
       if (updateError) throw updateError
 
       onWorkspaceUpdate?.(data)
-      setMessage('Workspace name updated successfully.')
-    } catch (err) {
-      setError(err.message || 'Unable to update workspace.')
-    } finally {
+toast.success('Workspace name updated successfully.')
+   } catch (err) {
+  console.error('Workspace update failed:', err)
+  toast.error(
+    getFriendlyError(err, 'Unable to update your workspace. Please try again.')
+  )
+} finally {
       setSaving(false)
     }
   }
