@@ -1,9 +1,8 @@
-
 import { useEffect, useState } from 'react';
 import {
   FileSearch, Plus, Search, AlertTriangle, CheckCircle2,
   ShieldCheck, XCircle, Eye, RefreshCw, UploadCloud,
-  FileText, Image as ImageIcon, ExternalLink
+  FileText, Image as ImageIcon, ExternalLink, MessageSquare, Send, Clock
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import './ContentReviewsPage.css';
@@ -35,6 +34,10 @@ export default function ContentReviewsPage({ workspace, role }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState('');
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentSaving, setCommentSaving] = useState(false);
 
   const canSubmit = ['owner', 'admin', 'editor'].includes(role);
   const canReview = ['owner', 'admin', 'editor', 'reviewer'].includes(role);
@@ -75,8 +78,81 @@ export default function ContentReviewsPage({ workspace, role }) {
     setLoading(false);
   }
 
+  async function loadComments(reviewId) {
+    setCommentsLoading(true);
+
+    const { data, error: commentsError } = await supabase
+      .from('review_comments')
+      .select('*')
+      .eq('review_id', reviewId)
+      .eq('workspace_id', workspace.id)
+      .order('created_at', { ascending: true });
+
+    if (commentsError) {
+      setError(commentsError.message || 'Could not load review comments.');
+      setComments([]);
+    } else {
+      setComments(data || []);
+    }
+
+    setCommentsLoading(false);
+  }
+
+  async function submitComment(event) {
+    event.preventDefault();
+
+    if (!canReview || !selected || !commentText.trim()) return;
+
+    setCommentSaving(true);
+    setError('');
+
+    try {
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
+
+      if (userError) throw userError;
+
+      if (!userData.user) {
+        throw new Error('Please sign in again.');
+      }
+
+      const metadata = userData.user.user_metadata || {};
+
+      const authorName =
+        metadata.full_name ||
+        metadata.fullName ||
+        metadata.name ||
+        userData.user.email?.split('@')[0] ||
+        'Workspace member';
+
+      const { data, error: insertError } = await supabase
+        .from('review_comments')
+        .insert({
+          review_id: selected.id,
+          workspace_id: workspace.id,
+          created_by: userData.user.id,
+          author_name: authorName,
+          comment_text: commentText.trim(),
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      setComments((current) => [...current, data]);
+      setCommentText('');
+    } catch (err) {
+      setError(err.message || 'Could not add comment.');
+    } finally {
+      setCommentSaving(false);
+    }
+  }
+
   async function openReview(review) {
     setError('');
+    setComments([]);
+    setCommentText('');
+    loadComments(review.id);
 
     setSelected({
       ...review,
@@ -675,6 +751,82 @@ export default function ContentReviewsPage({ workspace, role }) {
                   ))}
                 </div>
               )}
+
+              <section className="cr-comments">
+                <div className="cr-comments-heading">
+                  <div>
+                    <h3>
+                      <MessageSquare size={16} />
+                      Reviewer Discussion
+                    </h3>
+                    <span>{comments.length} comment(s)</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="cr-icon-button"
+                    onClick={() => loadComments(selected.id)}
+                    title="Refresh discussion"
+                    disabled={commentsLoading}
+                  >
+                    <RefreshCw size={15} />
+                  </button>
+                </div>
+
+                {commentsLoading ? (
+                  <p className="cr-comments-empty">Loading discussion...</p>
+                ) : comments.length === 0 ? (
+                  <p className="cr-comments-empty">
+                    No comments yet. Start the review discussion.
+                  </p>
+                ) : (
+                  <div className="cr-comment-list">
+                    {comments.map((comment) => (
+                      <article className="cr-comment" key={comment.id}>
+                        <div className="cr-comment-meta">
+                          <strong>
+                            {comment.author_name || (comment.created_by
+                              ? `User · ${comment.created_by.slice(0, 8)}…`
+                              : 'Former member')}
+                          </strong>
+                          <span>
+                            <Clock size={12} />
+                            {new Date(comment.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                        <p>{comment.comment_text}</p>
+                      </article>
+                    ))}
+                  </div>
+                )}
+
+                {canReview ? (
+                  <form className="cr-comment-form" onSubmit={submitComment}>
+                    <textarea
+                      value={commentText}
+                      onChange={(event) => setCommentText(event.target.value)}
+                      placeholder="Share feedback or discuss this review..."
+                      rows={3}
+                      maxLength={3000}
+                      aria-label="Write a review comment"
+                    />
+                    <div className="cr-comment-form-footer">
+                      <span>{commentText.length}/3000</span>
+                      <button
+                        className="cr-primary"
+                        type="submit"
+                        disabled={commentSaving || !commentText.trim()}
+                      >
+                        <Send size={15} />
+                        {commentSaving ? 'Posting...' : 'Post comment'}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <p className="cr-comments-readonly">
+                    You have view-only access to this discussion.
+                  </p>
+                )}
+              </section>
 
               {canReview && !['approved', 'rejected'].includes(selected.status) && (
                 <div className="cr-actions">

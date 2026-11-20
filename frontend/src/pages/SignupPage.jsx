@@ -30,6 +30,15 @@ export default function SignupPage({
     setError('')
     setMessage('')
 
+    const cleanName = fullName.trim().replace(/\s+/g, ' ')
+    const cleanEmail = email.trim().toLowerCase()
+    const cleanWorkspaceName = workspaceName.trim()
+
+    if (!cleanName) {
+      setError('Please enter your full name.')
+      return
+    }
+
     if (password.length < 8) {
       setError('Password must contain at least 8 characters.')
       return
@@ -45,7 +54,7 @@ export default function SignupPage({
       return
     }
 
-    if (!invitationMode && !workspaceName.trim()) {
+    if (!invitationMode && !cleanWorkspaceName) {
       setError('Please enter your company or brand name.')
       return
     }
@@ -53,27 +62,44 @@ export default function SignupPage({
     setLoading(true)
 
     try {
+      // Save the actual name in Supabase Auth metadata.
+      // These fields are available for all authenticated users.
       const metadata = {
-        full_name: fullName.trim()
+        full_name: cleanName,
+        fullName: cleanName,
+        name: cleanName
       }
 
       if (!invitationMode) {
-        metadata.company_name = workspaceName.trim()
-        metadata.workspace_name = workspaceName.trim()
+        metadata.company_name = cleanWorkspaceName
+        metadata.workspace_name = cleanWorkspaceName
       }
 
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
+      const { data, error: signupError } = await supabase.auth.signUp({
+        email: cleanEmail,
         password,
         options: {
-  emailRedirectTo: invitationMode && invitationToken
-    ? `${window.location.origin}/accept-invitation?token=${encodeURIComponent(invitationToken)}`
-    : window.location.origin,
-  data: metadata
-}
+          emailRedirectTo:
+            invitationMode && invitationToken
+              ? `${window.location.origin}/accept-invitation?token=${encodeURIComponent(invitationToken)}`
+              : window.location.origin,
+          data: metadata
+        }
       })
 
-      if (error) throw error
+      if (signupError) throw signupError
+
+      // If Supabase immediately creates a session,
+      // also update the authenticated user's metadata.
+      if (data.user && data.session) {
+        const { error: updateError } = await supabase.auth.updateUser({
+          data: metadata
+        })
+
+        if (updateError) {
+          console.error('Profile metadata update failed:', updateError)
+        }
+      }
 
       setMessage(
         data.session
@@ -100,13 +126,16 @@ export default function SignupPage({
       <div className="auth-card">
         <div className="auth-brand">
           <div className="brand-icon auth-brand-icon">
-  <img
-    src="/brandguard-logo.png"
-    alt="Unwind BrandGuard"
-    className="brand-logo"
-  />
-</div>
-          <div><strong>UNWIND</strong><span>BRANDGUARD</span></div>
+            <img
+              src="/brandguard-logo.png"
+              alt="Unwind BrandGuard"
+              className="brand-logo"
+            />
+          </div>
+          <div>
+            <strong>UNWIND</strong>
+            <span>BRANDGUARD</span>
+          </div>
         </div>
 
         <div className="eyebrow">
@@ -187,6 +216,7 @@ export default function SignupPage({
               type="button"
               className="auth-password-toggle"
               onClick={() => setShowPassword(v => !v)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
             </button>
@@ -207,8 +237,11 @@ export default function SignupPage({
               type="button"
               className="auth-password-toggle"
               onClick={() => setShowConfirmPassword(v => !v)}
+              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
             >
-              {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+              {showConfirmPassword
+                ? <EyeOff size={17} />
+                : <Eye size={17} />}
             </button>
           </div>
 
@@ -219,21 +252,32 @@ export default function SignupPage({
               onChange={e => setAcceptedTerms(e.target.checked)}
             />
             <span>
-  I agree to the{' '}
-  <button type="button" className="auth-legal-link" onClick={onTerms}>
-    Terms of Service
-  </button>
-  {' '}and{' '}
-  <button type="button" className="auth-legal-link" onClick={onPrivacy}>
-    Privacy Policy
-  </button>.
-</span>
+              I agree to the{' '}
+              <button
+                type="button"
+                className="auth-legal-link"
+                onClick={onTerms}
+              >
+                Terms of Service
+              </button>
+              {' '}and{' '}
+              <button
+                type="button"
+                className="auth-legal-link"
+                onClick={onPrivacy}
+              >
+                Privacy Policy
+              </button>.
+            </span>
           </label>
 
           {error && <div className="auth-error">{error}</div>}
           {message && <div className="auth-message">{message}</div>}
 
-          <button className="primary-button auth-submit" disabled={loading}>
+          <button
+            className="primary-button auth-submit"
+            disabled={loading}
+          >
             {loading ? 'Creating account...' : 'Create account'}
             <ArrowRight size={17} />
           </button>
