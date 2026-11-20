@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/banner.svg" alt="Unwind BrandGuard: Define. Analyze. Protect." width="100%">
+<img src="docs/banner.svg" alt="Unwind BrandGuard: Define. Analyze. Protect." width="100%">
 
 <br>
 
@@ -20,7 +20,7 @@
 
 </div>
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 📖 Table of contents
 
@@ -43,7 +43,7 @@
 - [Contributing](#-contributing)
 - [License](#-license)
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 💡 Why BrandGuard?
 
@@ -63,16 +63,16 @@ Brand consistency breaks down quietly. Different teams, channels, and writers in
 <br>
 
 <div align="center">
-<img src="docs/assets/review-findings.svg" alt="Illustration of a BrandGuard review: submitted content, compliance score, and findings with severity, evidence, guideline reference and a suggested fix" width="100%">
+<img src="docs/review-findings.svg" alt="Illustration of a BrandGuard review: submitted content, compliance score, and findings with severity, evidence, guideline reference and a suggested fix" width="100%">
 <sub>Illustration of a review. Every finding carries its evidence, the guideline it relates to, a severity, and a suggested fix.</sub>
 </div>
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## ✨ Features
 
 <div align="center">
-<img src="docs/assets/features.svg" alt="Six core capabilities: workspaces and roles, living guidelines, explainable AI analysis, image and PDF review, human-controlled approval, compliance analytics" width="100%">
+<img src="docs/features.svg" alt="Six core capabilities: workspaces and roles, living guidelines, explainable AI analysis, image and PDF review, human-controlled approval, compliance analytics" width="100%">
 </div>
 
 <br>
@@ -132,12 +132,12 @@ Review more than text. BrandGuard analyzes visual and document-based content aga
 - Rate limiting and content-length validation on analysis requests
 - Secrets live in environment variables, never in frontend code
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 🔄 How it works
 
 <div align="center">
-<img src="docs/assets/pipeline.svg" alt="Pipeline: create a workspace, define guidelines, submit content, Gemini analyzes, findings and fixes, human review" width="100%">
+<img src="docs/pipeline.svg" alt="Pipeline: create a workspace, define guidelines, submit content, Gemini analyzes, findings and fixes, human review" width="100%">
 </div>
 
 1. **Sign in** through the React frontend. Supabase Auth manages sessions.
@@ -149,31 +149,31 @@ Review more than text. BrandGuard analyzes visual and document-based content aga
 7. **Teammates review** and approve, reject, or request changes. Every revision is kept in version history.
 8. **RLS policies** enforce workspace-level data access throughout.
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 🧭 Review workflow
 
 <div align="center">
-<img src="docs/assets/workflow.svg" alt="Review lifecycle: submitted, in review, then approved, changes requested, or rejected. Changes requested leads to a new version and another review." width="100%">
+<img src="docs/workflow.svg" alt="Review lifecycle: submitted, in review, then approved, changes requested, or rejected. Changes requested leads to a new version and another review." width="100%">
 </div>
 
 AI findings never publish anything on their own. Content moves forward only when a person approves it, and a requested change creates a new version so the full history stays traceable.
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 📊 Compliance analytics
 
 <div align="center">
-<img src="docs/assets/analytics.svg" alt="Illustration of the compliance analytics dashboard: KPI cards, score trend, and most violated guidelines" width="100%">
+<img src="docs/analytics.svg" alt="Illustration of the compliance analytics dashboard: KPI cards, score trend, and most violated guidelines" width="100%">
 <sub>Illustration with sample numbers. The dashboard highlights score trends and which guidelines are broken most often.</sub>
 </div>
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 🧰 Tech stack
 
 <div align="center">
-<img src="docs/assets/stack.svg" alt="Technology stack: React, Vite, Node.js, Express, Supabase, Gemini, Brevo, Vercel, Render, UptimeRobot" width="100%">
+<img src="docs/stack.svg" alt="Technology stack: React, Vite, Node.js, Express, Supabase, Gemini, Brevo, Vercel, Render, UptimeRobot" width="100%">
 </div>
 
 <br>
@@ -191,17 +191,17 @@ AI findings never publish anything on their own. Content moves forward only when
 | **Monitoring** | UptimeRobot |
 | **Tooling** | Git and GitHub |
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 🏗️ Architecture
 
 <div align="center">
-<img src="docs/assets/architecture.svg" alt="Architecture: Teams use the React frontend on Vercel, which authenticates with Supabase Auth and calls the Express API on Render. The API calls Gemini and Brevo and reads and writes Supabase Postgres and private storage." width="100%">
+<img src="docs/architecture.svg" alt="Architecture: Teams use the React frontend on Vercel, which authenticates with Supabase Auth and calls the Express API on Render. The API calls Gemini and Brevo and reads and writes Supabase Postgres and private storage." width="100%">
 </div>
 
 For a deeper walkthrough, see [`PROJECT_ARCHITECTURE.md`](PROJECT_ARCHITECTURE.md).
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 📁 Project structure
 
@@ -235,7 +235,7 @@ Unwind-BrandGuard/
 
 > This is a representative structure; the repository may contain additional files.
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## ⚙️ Getting started
 
@@ -285,7 +285,7 @@ Vite prints the local URL (typically `http://localhost:5173`).
 
 Apply the schema, RLS policies, and functions from the [`supabase/`](supabase) folder to your Supabase project (see [Database and security](#-database-and-security)). Create the private storage bucket used for uploaded images and PDFs. Do this before testing workspaces, invitations, and multimodal reviews.
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 🔑 Environment variables
 
@@ -313,14 +313,14 @@ Vite only exposes variables prefixed with `VITE_`. Match the names used in `src/
 
 > 🚨 **Never** put the service-role key in the frontend, and never commit `.env` files. Keep a `.env.example` with placeholder values so contributors know what to configure.
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 🔒 Database and security
 
 BrandGuard uses **Supabase PostgreSQL** for storage and **Supabase Auth** for identity. Access is restricted at the database level with **Row Level Security (RLS)**.
 
 <div align="center">
-<img src="docs/assets/security.svg" alt="Layered security: authenticated session, workspace membership, role-based access, row level security, and protected secrets" width="100%">
+<img src="docs/security.svg" alt="Layered security: authenticated session, workspace membership, role-based access, row level security, and protected secrets" width="100%">
 </div>
 
 ### Workspace invitation infrastructure
@@ -344,7 +344,7 @@ BrandGuard uses **Supabase PostgreSQL** for storage and **Supabase Auth** for id
 
 Found a vulnerability? Please report it privately to the maintainers rather than opening a public issue.
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 🚀 Deployment
 
@@ -367,7 +367,7 @@ Found a vulnerability? Please report it privately to the maintainers rather than
 - [ ] Confirm RLS policies are enabled on all tables
 - [ ] Confirm the storage bucket for uploads is private
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 📡 Uptime monitoring
 
@@ -386,7 +386,7 @@ Production services are monitored with [UptimeRobot](https://uptimerobot.com/).
 - Backend: https://unwind-brandguard.onrender.com/api/health
 - Frontend: https://unwind-brand-guard.vercel.app/
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 🩺 Troubleshooting
 
@@ -401,7 +401,7 @@ Production services are monitored with [UptimeRobot](https://uptimerobot.com/).
 | Image or PDF won't open | Confirm the storage bucket exists and that you belong to the workspace; signed URLs expire, so reload the review |
 | Data missing or "permission denied" | Review RLS policies and the user's workspace membership |
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 📦 What's shipped
 
@@ -443,7 +443,7 @@ Production services are monitored with [UptimeRobot](https://uptimerobot.com/).
 
 </details>
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 🗺️ Roadmap
 
@@ -458,7 +458,7 @@ Production services are monitored with [UptimeRobot](https://uptimerobot.com/).
 
 Have an idea? [Open an issue](https://github.com/Unwind-BrandGuard/Unwind-BrandGuard/issues) and tell us what would help your team.
 
-<img src="docs/assets/divider.svg" alt="" width="100%">
+<img src="docs/divider.svg" alt="" width="100%">
 
 ## 🤝 Contributing
 
