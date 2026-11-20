@@ -1,31 +1,124 @@
+
+/* ==========================================
+   BRANDGUARD — INSIGHTS DASHBOARD V2
+   ========================================== */
+
 .ins-page {
+  --ins-accent: #16f5d0;
+  --ins-accent-soft: rgba(22, 245, 208, 0.1);
+  --ins-border: rgba(183, 255, 242, 0.1);
+  --ins-text: #eafffa;
+  --ins-muted: #91aaa5;
+  --ins-surface: #0c1615;
+
   display: flex;
   flex-direction: column;
   gap: 22px;
+  min-width: 0;
+  padding-bottom: 24px;
 }
+
+/* ==========================================
+   HEADER & FILTER TOOLBAR
+   ========================================== */
 
 .ins-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.ins-heading h1 {
+  letter-spacing: -0.035em;
+}
+
+.ins-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ins-date-filters {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--ins-border);
+  border-radius: 12px;
+  background: #0c1816;
+}
+
+.ins-filter-btn {
+  min-width: 48px;
+  padding: 9px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #91aaa5;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.ins-filter-btn:hover {
+  color: #eafffa;
+  background: rgba(22, 245, 208, 0.07);
+}
+
+.ins-filter-btn.active {
+  color: #071c17;
+  background: var(--ins-accent);
+  border-color: var(--ins-accent);
+  box-shadow: 0 0 16px rgba(22, 245, 208, 0.12);
 }
 
 .ins-refresh {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 10px 14px;
-  border: 1px solid rgba(22, 245, 208, 0.2);
-  border-radius: 10px;
-  background: #101818;
+  min-height: 43px;
+  padding: 10px 15px;
+  border: 1px solid rgba(22, 245, 208, 0.22);
+  border-radius: 11px;
+  background: #101c19;
   color: #b7fff2;
+  font-size: 12px;
+  font-weight: 650;
   cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
-.ins-refresh:hover {
-  border-color: #16f5d0;
+.ins-refresh:hover:not(:disabled) {
+  border-color: var(--ins-accent);
+  background: #172b25;
+  transform: translateY(-1px);
 }
+
+.ins-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ins-refresh:focus-visible,
+.ins-filter-btn:focus-visible {
+  outline: 2px solid var(--ins-accent);
+  outline-offset: 3px;
+}
+
+/* ==========================================
+   KPI CARDS
+   ========================================== */
 
 .ins-stats {
   display: grid;
@@ -34,137 +127,281 @@
 }
 
 .ins-card {
-  padding: 19px;
-  border: 1px solid rgba(183, 255, 242, 0.09);
-  border-radius: 14px;
-  background: #071010;
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  padding: 21px;
+  border: 1px solid var(--ins-border);
+  border-radius: 16px;
+  background: linear-gradient(
+    145deg,
+    #10201c 0%,
+    #081210 100%
+  );
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.ins-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 70%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(22, 245, 208, 0.5),
+    transparent
+  );
+}
+
+.ins-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(22, 245, 208, 0.27);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
 }
 
 .ins-card > span {
-  color: #91aaa5;
-  font-size: 13px;
+  display: block;
+  color: #9ab3ac;
+  font-size: 12px;
+  font-weight: 550;
 }
 
 .ins-card > div {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 15px 0 8px;
-  color: #16f5d0;
+  margin: 16px 0 9px;
+  color: var(--ins-accent);
+}
+
+.ins-card > div svg {
+  flex-shrink: 0;
+  padding: 9px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--ins-accent-soft);
 }
 
 .ins-card strong {
-  color: #eafffa;
-  font-size: 29px;
-  font-weight: 650;
+  color: var(--ins-text);
+  font-size: clamp(25px, 2.4vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
 }
 
 .ins-card small {
+  display: block;
   color: #78918b;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
-.ins-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 16px;
-}
+/* ==========================================
+   CHART PANELS
+   ========================================== */
 
 .ins-panel {
-  padding: 22px;
   min-width: 0;
+  padding: 23px;
+  border: 1px solid var(--ins-border);
+  border-radius: 16px;
+  background: linear-gradient(
+    160deg,
+    #101d1a 0%,
+    #0a1412 100%
+  );
 }
 
 .ins-panel-heading {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 23px;
-  color: #16f5d0;
+  gap: 14px;
+  margin-bottom: 24px;
+  color: var(--ins-accent);
+}
+
+.ins-panel-heading > svg {
+  flex-shrink: 0;
 }
 
 .ins-panel-heading h2 {
-  margin: 0 0 6px;
-  color: #eafffa;
-  font-size: 17px;
+  margin: 0 0 7px;
+  color: var(--ins-text);
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
 }
 
 .ins-panel-heading p {
   margin: 0;
   color: #829994;
   font-size: 12px;
+  line-height: 1.5;
 }
 
-.ins-bars {
+.ins-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.ins-grid > .ins-panel {
+  min-width: 0;
+}
+
+.ins-activity-panel {
+  min-width: 0;
+}
+
+.ins-chart-container {
+  width: 100%;
+  min-width: 0;
+  height: 270px;
+}
+
+/* ==========================================
+   RECHARTS CUSTOMIZATION
+   ========================================== */
+
+.ins-page .recharts-cartesian-grid line {
+  stroke: #263d38;
+}
+
+.ins-page .recharts-text {
+  fill: #829994;
+  font-size: 11px;
+}
+
+.ins-page .recharts-tooltip-wrapper {
+  outline: none;
+  z-index: 10;
+}
+
+.ins-page .recharts-default-tooltip {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+}
+
+.ins-page .recharts-tooltip-item {
+  color: #b7fff2 !important;
+}
+
+.ins-page .recharts-rectangle,
+.ins-page .recharts-sector {
+  transition: opacity 0.2s ease;
+}
+
+.ins-page .recharts-rectangle:hover,
+.ins-page .recharts-sector:hover {
+  opacity: 0.85;
+}
+
+/* ==========================================
+   DONUT CHART
+   ========================================== */
+
+.ins-donut-wrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: 230px;
+}
+
+.ins-donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   display: flex;
   flex-direction: column;
-  gap: 19px;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
-.ins-bar-label {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
-  color: #c8ddd8;
-  font-size: 13px;
-  text-transform: capitalize;
+.ins-donut-center strong {
+  color: #eafffa;
+  font-size: 31px;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
 }
 
-.ins-bar-label strong {
-  color: #16f5d0;
+.ins-donut-center span {
+  color: #829994;
+  font-size: 11px;
+  font-weight: 500;
 }
 
-.ins-bar-track {
-  height: 8px;
-  overflow: hidden;
-  border-radius: 20px;
-  background: #182724;
-}
-
-.ins-bar-fill {
-  height: 100%;
-  border-radius: inherit;
-  background: #16cbb0;
-  transition: width 0.3s ease;
-}
-
-.ins-outcomes {
+.ins-chart-legend {
   display: flex;
   flex-direction: column;
   gap: 0;
+  margin-top: 8px;
 }
 
-.ins-outcomes > div {
+.ins-chart-legend > div {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 15px 0;
-  border-bottom: 1px solid rgba(183, 255, 242, 0.08);
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(183, 255, 242, 0.07);
 }
 
-.ins-outcomes > div:last-child {
-  border-bottom: 0;
+.ins-chart-legend > div:last-child {
+  border-bottom: none;
 }
 
-.ins-outcomes span {
+.ins-chart-legend span {
   display: flex;
   align-items: center;
-  gap: 9px;
-  color: #a8c0ba;
-  font-size: 13px;
+  gap: 10px;
+  color: #b6ccc4;
+  font-size: 12px;
 }
 
-.ins-outcomes span svg {
-  color: #16f5d0;
+.ins-chart-legend i {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
 }
 
-.ins-outcomes strong {
+.ins-chart-legend strong {
   color: #eafffa;
-  font-size: 18px;
+  font-size: 13px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
 }
+
+/* ==========================================
+   VIOLATIONS BAR CHART
+   ========================================== */
+
+.ins-violations-chart {
+  width: 100%;
+  min-width: 0;
+  min-height: 240px;
+}
+
+.ins-violations-chart .recharts-cartesian-axis-tick-value {
+  text-transform: capitalize;
+}
+
+/* ==========================================
+   RECENT REVIEW ACTIVITY
+   ========================================== */
 
 .ins-recent-list {
   display: flex;
@@ -175,9 +412,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 15px;
-  padding: 15px 0;
+  gap: 16px;
+  padding: 16px 10px;
   border-bottom: 1px solid rgba(183, 255, 242, 0.08);
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.ins-recent-item:hover {
+  background: rgba(22, 245, 208, 0.035);
 }
 
 .ins-recent-item:last-child {
@@ -187,13 +430,14 @@
 .ins-recent-item > div {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   min-width: 0;
 }
 
 .ins-recent-item strong {
   color: #eafffa;
   font-size: 13px;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
@@ -203,95 +447,237 @@
 }
 
 .ins-status {
-  padding: 6px 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 7px 11px;
+  border: 1px solid rgba(183, 255, 242, 0.08);
   border-radius: 20px;
   background: #182724;
   color: #b7fff2;
   font-size: 10px;
+  font-weight: 650;
   white-space: nowrap;
   text-transform: capitalize;
 }
 
 .ins-status-approved {
   color: #78edbd;
+  background: rgba(120, 237, 189, 0.08);
 }
 
 .ins-status-rejected {
   color: #ff9999;
+  background: rgba(255, 153, 153, 0.08);
 }
 
 .ins-status-changes_requested {
   color: #ffd18a;
+  background: rgba(255, 209, 138, 0.08);
 }
 
 .ins-status-pending,
 .ins-status-in_review {
   color: #b7c9ff;
+  background: rgba(183, 201, 255, 0.08);
 }
 
+/* ==========================================
+   EMPTY, LOADING & ERROR STATES
+   ========================================== */
+
 .ins-empty {
-  padding: 24px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 15px;
   color: #829994;
   font-size: 13px;
+  line-height: 1.6;
   text-align: center;
 }
 
-.ins-disclaimer {
-  margin: -5px 0 0;
-  color: #708781;
-  font-size: 11px;
-  line-height: 1.6;
+.ins-chart-empty {
+  min-height: 230px;
+  border: 1px dashed rgba(183, 255, 242, 0.12);
+  border-radius: 12px;
+  background: rgba(22, 245, 208, 0.02);
 }
 
 .ins-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 300px;
   padding: 30px;
   color: #b7fff2;
+  font-size: 14px;
 }
 
-.ins-error {
-  padding: 12px 15px;
-  border: 1px solid rgba(255, 120, 120, 0.25);
-  border-radius: 9px;
-  background: rgba(255, 80, 80, 0.07);
-  color: #ffaaaa;
-  font-size: 13px;
+.ins-spinning {
+  animation: ins-rotate 1s linear infinite;
 }
 
-@media (max-width: 1000px) {
+@keyframes ins-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================
+   DISCLAIMER
+   ========================================== */
+
+.ins-disclaimer {
+  margin: -3px 0 0;
+  color: #708781;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
+
+@media (max-width: 1100px) {
   .ins-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
 
+@media (max-width: 900px) {
   .ins-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (max-width: 600px) {
+  .ins-page {
+    gap: 16px;
+  }
+
   .ins-heading {
     align-items: flex-start;
     flex-direction: column;
+    gap: 16px;
+  }
+
+  .ins-toolbar {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .ins-date-filters {
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  .ins-filter-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 10px;
   }
 
   .ins-stats {
-    grid-template-columns: 1fr 1fr;
-    gap: 9px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .ins-card {
-    padding: 14px;
+    padding: 15px;
+    border-radius: 12px;
+  }
+
+  .ins-card > span {
+    font-size: 11px;
+  }
+
+  .ins-card > div {
+    gap: 8px;
+    margin: 12px 0 7px;
+  }
+
+  .ins-card > div svg {
+    width: 34px;
+    height: 34px;
+    padding: 8px;
   }
 
   .ins-card strong {
-    font-size: 24px;
+    font-size: 25px;
+  }
+
+  .ins-card small {
+    font-size: 10px;
   }
 
   .ins-panel {
-    padding: 16px;
+    padding: 17px;
+    border-radius: 13px;
+  }
+
+  .ins-panel-heading {
+    margin-bottom: 18px;
+  }
+
+  .ins-panel-heading h2 {
+    font-size: 15px;
+  }
+
+  .ins-chart-container {
+    height: 250px;
   }
 
   .ins-recent-item {
     align-items: flex-start;
     flex-direction: column;
+    gap: 10px;
+    padding: 14px 0;
+  }
+
+  .ins-status {
+    align-self: flex-start;
+  }
+
+  .ins-disclaimer {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .ins-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ins-refresh {
+    width: 100%;
+  }
+
+  .ins-card {
+    padding: 12px;
+  }
+
+  .ins-card strong {
+    font-size: 22px;
+  }
+}
+
+/* ==========================================
+   ACCESSIBILITY
+   ========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .ins-card,
+  .ins-refresh,
+  .ins-filter-btn,
+  .ins-recent-item {
+    transition: none;
+  }
+
+  .ins-spinning {
+    animation: none;
   }
 }
