@@ -63,19 +63,30 @@ async function listWorkspaceMembers(req, res) {
 
     if (error) throw error;
 
-    const membersWithEmails = await Promise.all(
-      members.map(async member => {
-        const { data, error: userError } =
-          await supabaseAdmin.auth.admin.getUserById(member.user_id);
+   const membersWithEmails = await Promise.all(
+  members.map(async member => {
+    const { data, error: userError } =
+      await supabaseAdmin.auth.admin.getUserById(member.user_id);
 
-        if (userError) throw userError;
+    if (userError) throw userError;
 
-        return {
-          ...member,
-          email: data.user?.email || null,
-        };
-      })
-    );
+    const user = data.user;
+    const metadata = user?.user_metadata || {};
+
+    const fullName =
+      metadata.full_name?.trim() ||
+      metadata.fullName?.trim() ||
+      metadata.name?.trim() ||
+      user?.email?.split('@')[0] ||
+      'Workspace Member';
+
+    return {
+      ...member,
+      name: fullName,
+      email: user?.email || null,
+    };
+  })
+);
 
     return res.status(200).json({
       success: true,

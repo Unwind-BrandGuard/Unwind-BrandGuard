@@ -375,17 +375,18 @@ async function handleInvite(event) {
                   <tr key={member.id}>
                     <td>
                       <div className="member-identity">
-                        <div className="member-avatar">
-                          {(member.email || '?').charAt(0).toUpperCase()}
-                        </div>
+  <div className="member-avatar">
+    {(member.name || member.email || '?').charAt(0).toUpperCase()}
+  </div>
 
-                        <div>
-                          <strong>{member.email || 'Unknown user'}</strong>
-                          <span>
-                            Joined {new Date(member.joined_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
+  <div className="member-info">
+    <strong>{member.name || 'Unknown user'}</strong>
+    <span>{member.email || 'No email available'}</span>
+    <span>
+      Joined {new Date(member.joined_at).toLocaleDateString()}
+    </span>
+  </div>
+</div>
                     </td>
 
                     <td>
