@@ -178,3 +178,98 @@
     line-height: 1.8;
   }
 }
+
+
+/* PREMIUM PRIVACY POLICY */
+
+.privacy-page {
+  background: var(--bg);
+  color: var(--text);
+  transition: background-color .26s ease, color .26s ease;
+}
+
+.privacy-header,
+.privacy-footer {
+  border-color: var(--border);
+}
+
+.privacy-back-button {
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--border);
+  border-radius: 10px;
+}
+
+.privacy-back-button:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateX(-2px);
+}
+
+.privacy-brand,
+.privacy-eyebrow,
+.privacy-document section li::marker {
+  color: var(--accent);
+}
+
+.privacy-brand strong {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--text);
+  font-size: 17px;
+  letter-spacing: -.02em;
+}
+
+.privacy-brand small,
+.privacy-updated,
+.privacy-footer {
+  color: var(--muted);
+}
+
+.privacy-document h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(38px, 5vw, 58px);
+  font-weight: 500;
+  letter-spacing: -.04em;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.privacy-intro {
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.privacy-document section h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -.02em;
+}
+
+.privacy-document section p,
+.privacy-document section li {
+  color: var(--muted);
+  line-height: 1.9;
+}
+
+.privacy-document section strong {
+  color: var(--text);
+}
+
+@media (max-width: 600px) {
+  .privacy-document section h2 {
+    font-size: 21px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .privacy-back-button:hover {
+    transform: none;
+  }
+}
