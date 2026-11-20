@@ -81,6 +81,66 @@ function Reveal({ as: Tag = 'div', delay = 0, className = '', children, ...rest 
   )
 }
 
+function MagneticButton({ children, className = '', style, ...props }) {
+  const buttonRef = useRef(null)
+  const frameRef = useRef(null)
+
+  const handleMove = (e) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (e.pointerType !== 'mouse') return
+
+    const button = buttonRef.current
+    if (!button) return
+
+    const rect = button.getBoundingClientRect()
+    const x = e.clientX - rect.left - rect.width / 2
+    const y = e.clientY - rect.top - rect.height / 2
+
+    if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
+
+    frameRef.current = requestAnimationFrame(() => {
+      button.style.setProperty('--mag-x', `${x * 0.13}px`)
+      button.style.setProperty('--mag-y', `${y * 0.18}px`)
+      button.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`)
+      button.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`)
+      frameRef.current = null
+    })
+  }
+
+  const reset = () => {
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current)
+      frameRef.current = null
+    }
+
+    const button = buttonRef.current
+    if (!button) return
+
+    button.style.setProperty('--mag-x', '0px')
+    button.style.setProperty('--mag-y', '0px')
+  }
+
+  useEffect(() => {
+    return () => {
+      if (frameRef.current !== null) cancelAnimationFrame(frameRef.current)
+    }
+  }, [])
+
+  return (
+    <button
+      {...props}
+      ref={buttonRef}
+      className={`bg-magnetic-btn ${className}`}
+      style={style}
+      onPointerMove={handleMove}
+      onPointerLeave={reset}
+      onBlur={reset}
+    >
+      {children}
+    </button>
+  )
+}
+
 function Logo({ onClick }) {
   return (
     <a className="bg-landing-logo" href="#home" onClick={onClick}>
@@ -196,9 +256,13 @@ export default function LandingPage({ onGetStarted, onSignIn, onAbout, onTerms, 
           </nav>
           <div className="bg-landing-nav-actions">
             <button type="button" className="bg-landing-btn-text" onClick={act(onSignIn)}>Sign in</button>
-            <button type="button" className="bg-landing-btn bg-landing-btn--small" onClick={act(onGetStarted)}>
-              Get started <ArrowUpRight size={15} aria-hidden="true" />
-            </button>
+            <MagneticButton
+  type="button"
+  className="bg-landing-btn bg-landing-btn--small"
+  onClick={act(onGetStarted)}
+>
+  Get started <ArrowUpRight size={15} aria-hidden="true" />
+</MagneticButton>
           </div>
           <button
             type="button"
@@ -228,9 +292,26 @@ export default function LandingPage({ onGetStarted, onSignIn, onAbout, onTerms, 
         <section className="bg-landing-hero" id="home" aria-labelledby="bg-hero-title">
           <div className="bg-landing-hero-copy">
             <p className="bg-landing-eyebrow bg-landing-intro" style={{ '--i': 0 }}>Introducing Unwind BrandGuard</p>
-            <h1 id="bg-hero-title" className="bg-landing-display bg-landing-intro" style={{ '--i': 1 }}>
-              Every word shapes your brand.<br />
-              Make every word <em>count.</em>
+            <h1
+              id="bg-hero-title"
+              className="bg-landing-display bg-landing-cinematic-title"
+              aria-label="Every word shapes your brand. Make every word count."
+            >
+              <span className="bg-landing-title-line" aria-hidden="true">
+                {['Every', 'word', 'shapes', 'your', 'brand.'].map((word, index) => (
+                  <span className="bg-landing-title-word" key={word} style={{ '--word-index': index }}>
+                    {word}
+                  </span>
+                ))}
+              </span>
+              <span className="bg-landing-title-line" aria-hidden="true">
+                {['Make', 'every', 'word'].map((word, index) => (
+                  <span className="bg-landing-title-word" key={word} style={{ '--word-index': index + 5 }}>
+                    {word}
+                  </span>
+                ))}
+                <em className="bg-landing-title-word" style={{ '--word-index': 8 }}>count.</em>
+              </span>
             </h1>
             <p className="bg-landing-lede bg-landing-intro" style={{ '--i': 2 }}>
               Your brand is more than a logo. It’s every claim, every campaign, and every message you put into the
@@ -238,9 +319,16 @@ export default function LandingPage({ onGetStarted, onSignIn, onAbout, onTerms, 
               content stays unmistakably yours.
             </p>
             <div className="bg-landing-actions bg-landing-intro" style={{ '--i': 3 }}>
-              <button type="button" className="bg-landing-btn" onClick={onGetStarted}>
-                Start protecting your brand <ArrowRight size={17} aria-hidden="true" />
-              </button>
+              
+<MagneticButton
+  type="button"
+  className="bg-landing-btn"
+  onClick={onGetStarted}
+>
+  <span>Start protecting your brand</span>
+  <ArrowRight size={17} aria-hidden="true" />
+</MagneticButton>
+
               <a className="bg-landing-btn bg-landing-btn--ghost" href="#how-it-works" onClick={(e) => goTo(e, 'how-it-works')}>
                 Explore how it works
               </a>
@@ -249,8 +337,8 @@ export default function LandingPage({ onGetStarted, onSignIn, onAbout, onTerms, 
               <ShieldCheck size={15} aria-hidden="true" /> AI-assisted analysis. Human-controlled decisions.
             </p>
           </div>
-          <div className="bg-landing-hero-visual">
-           <InteractiveBrandCore />
+          <div className="bg-landing-hero-visual bg-landing-hero-visual--cinematic">
+            <InteractiveBrandCore />
           </div>
           <a className="bg-landing-scroll" href="#problem" onClick={(e) => goTo(e, 'problem')} aria-label="Scroll to the next section">
             <span>Scroll</span><i aria-hidden="true" />
@@ -430,9 +518,13 @@ export default function LandingPage({ onGetStarted, onSignIn, onAbout, onTerms, 
             <p className="bg-landing-lede">
               Build a more consistent, accountable content workflow with Unwind BrandGuard.
             </p>
-            <button type="button" className="bg-landing-btn" onClick={onGetStarted}>
-              Create your workspace <ArrowRight size={17} aria-hidden="true" />
-            </button>
+            <MagneticButton
+  type="button"
+  className="bg-landing-btn"
+  onClick={onGetStarted}
+>
+  Create your workspace <ArrowRight size={17} aria-hidden="true" />
+</MagneticButton>
           </Reveal>
         </section>
       </main>
