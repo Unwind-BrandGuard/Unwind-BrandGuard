@@ -1,204 +1,460 @@
-import {
-  ShieldCheck, ArrowRight, ArrowUpRight, LockKeyhole,
-  Sparkles, FileCheck2, Users, BookOpen, CheckCircle2
-} from 'lucide-react'
-import '../App.css'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ArrowRight, ArrowUpRight, Menu, X, ShieldCheck } from 'lucide-react'
+import '../App.css' 
+import InteractiveBrandCore from "../components/landing/InteractiveBrandCore";// keeps theme variables; landing styles below are fully namespaced
+import './LandingPage.css'
 
-function FeatureCard({ icon: Icon, number, title, description }) {
+
+const NAV = [
+  { id: 'features', label: 'Features' },
+  { id: 'how-it-works', label: 'How it works' },
+  { id: 'principles', label: 'Our approach' }
+]
+
+const DRIFT = [
+  {
+    key: 'terminology',
+    tab: 'Inconsistent terminology',
+    approved: 'A supportive wellbeing journey.',
+    drifted: 'A wellness program.',
+    note: 'Three teams, three names for one idea. Each is reasonable alone; together they blur the brand.'
+  },
+  {
+    key: 'claims',
+    tab: 'Unsupported claims',
+    approved: 'Helps people build consistent habits.',
+    drifted: 'Guarantees lasting results in 30 days.',
+    note: 'A promise no approved source supports, and one that is hard to take back once published.'
+  },
+  {
+    key: 'tone',
+    tab: 'Off-brand tone',
+    approved: 'Here when you’re ready.',
+    drifted: 'ACT NOW. Don’t miss out!!',
+    note: 'Urgency tactics contradict a calm, supportive voice, even when the facts are right.'
+  },
+  {
+    key: 'approvals',
+    tab: 'Unclear approvals',
+    approved: 'Approved by Brand Lead · v4',
+    drifted: 'final_v7_REALLY-final.pdf. Who signed off?',
+    note: 'When nobody can say who decided, nobody is accountable for what went out.'
+  }
+]
+
+const STEPS = [
+  { n: '01', title: 'Define', text: 'Bring your brand guidelines and approved language together.' },
+  { n: '02', title: 'Submit', text: 'Add content for review, including supported text and document formats.' },
+  { n: '03', title: 'Refine', text: 'Explore findings, supporting references, and suggested changes.' },
+  { n: '04', title: 'Decide', text: 'Your team makes the final approval decision.' }
+]
+
+/* Adds data-in once the element enters the viewport (CSS handles the motion). */
+function Reveal({ as: Tag = 'div', delay = 0, className = '', children, ...rest }) {
+  const ref = useRef(null)
+  const [shown, setShown] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || shown) return undefined
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setShown(true)
+          io.disconnect()
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -8% 0px' }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [shown])
   return (
-    <article className="landing-feature-card">
-      <div className="feature-card-top">
-        <span className="feature-card-icon"><Icon size={21} /></span>
-        <span>{number}</span>
+    <Tag
+      ref={ref}
+      className={`bg-landing-reveal ${className}`}
+      data-in={shown}
+      style={{ '--bg-delay': `${delay}ms` }}
+      {...rest}
+    >
+      {children}
+    </Tag>
+  )
+}
+
+function Logo({ onClick }) {
+  return (
+    <a className="bg-landing-logo" href="#home" onClick={onClick}>
+      <img src="/brandguard-logo.png" alt="" width="34" height="34" />
+      <span>
+        <strong>Unwind</strong>
+        <small>BrandGuard</small>
+      </span>
+      <span className="bg-landing-sr">Unwind BrandGuard home</span>
+    </a>
+  )
+}
+
+function DriftVisual() {
+  const [active, setActive] = useState(0)
+  const [drift, setDrift] = useState(55)
+  const item = DRIFT[active]
+  return (
+    <div className="bg-landing-drift" style={{ '--bg-drift': drift / 100 }}>
+      <div className="bg-landing-drift-tabs" role="tablist" aria-label="Examples of brand drift">
+        {DRIFT.map((d, i) => (
+          <button
+            key={d.key}
+            role="tab"
+            id={`bg-drift-tab-${d.key}`}
+            aria-selected={i === active}
+            aria-controls="bg-drift-panel"
+            tabIndex={i === active ? 0 : -1}
+            className={i === active ? 'is-active' : ''}
+            onClick={() => setActive(i)}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowRight') setActive((active + 1) % DRIFT.length)
+              if (e.key === 'ArrowLeft') setActive((active + DRIFT.length - 1) % DRIFT.length)
+            }}
+          >
+            {d.tab}
+          </button>
+        ))}
       </div>
-      <h3>{title}</h3>
-      <p>{description}</p>
-    </article>
+      <div id="bg-drift-panel" role="tabpanel" aria-labelledby={`bg-drift-tab-${item.key}`} className="bg-landing-drift-stage">
+        <div className="bg-landing-drift-card is-standard">
+          <span>Approved standard</span>
+          <p>{item.approved}</p>
+        </div>
+        <div className="bg-landing-drift-card is-drifted" aria-live="polite">
+          <span>What gets published</span>
+          <p>{item.drifted}</p>
+        </div>
+      </div>
+      <p className="bg-landing-drift-note">{item.note}</p>
+      <label className="bg-landing-drift-slider">
+        <span>Time without review</span>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value={drift}
+          onChange={(e) => setDrift(Number(e.target.value))}
+          aria-label="Time without review: moves the published content away from the approved standard"
+        />
+      </label>
+      <p className="bg-landing-demo-tag">Illustrative example</p>
+    </div>
   )
 }
 
-function WorkflowStep({ number, title, description }) {
+export default function LandingPage({ onGetStarted, onSignIn, onAbout, onTerms, onPrivacy }) {
+  const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const rootRef = useRef(null)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    if (!menuOpen) return undefined
+    const onKey = (e) => e.key === 'Escape' && setMenuOpen(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpen])
+
+  const goTo = useCallback((e, id) => {
+    const target = document.getElementById(id)
+    if (!target) return
+    e.preventDefault()
+    setMenuOpen(false)
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+    history.replaceState(null, '', `#${id}`)
+  }, [])
+
+  const act = (fn) => () => {
+    setMenuOpen(false)
+    fn?.()
+  }
+
   return (
-    <article className="workflow-step">
-      <span>{number}</span>
-      <div className="workflow-step-line" />
-      <h3>{title}</h3>
-      <p>{description}</p>
-    </article>
-  )
-}
+    <div className="bg-landing" ref={rootRef}>
+      <a className="bg-landing-skip" href="#main" onClick={(e) => goTo(e, 'main')}>Skip to content</a>
 
-export default function LandingPage({
-  onGetStarted,
-  onSignIn,
-  onAbout,
-  onTerms,
-  onPrivacy
-}) {
-  return (
-    <main className="landing-page">
-      <nav className="landing-nav">
-        <a className="landing-brand" href="#home">
-          <span className="brand-icon">
-  <img src="/brandguard-logo.png" alt="Unwind BrandGuard" />
-</span>
-          <span><strong>UNWIND</strong><small>BRANDGUARD</small></span>
-        </a>
-
-        <div className="landing-nav-links">
-  <a href="#features">Features</a>
-  <a href="#how-it-works">How it works</a>
-  <a href="#principles">Our approach</a>
-  <button type="button" onClick={onAbout}>About us</button>
-</div>
-
-        <div className="landing-nav-actions">
-          <button className="landing-signin" onClick={onSignIn}>Sign in</button>
-          <button className="primary-button" onClick={onGetStarted}>
-            Get started <ArrowUpRight size={16} />
+      <header className={`bg-landing-nav ${scrolled ? 'is-scrolled' : ''} ${menuOpen ? 'is-open' : ''}`}>
+        <div className="bg-landing-nav-inner">
+          <Logo onClick={(e) => goTo(e, 'home')} />
+          <nav className="bg-landing-links" aria-label="Primary">
+            {NAV.map((l) => (
+              <a key={l.id} href={`#${l.id}`} onClick={(e) => goTo(e, l.id)}>{l.label}</a>
+            ))}
+            <button type="button" onClick={act(onAbout)}>About us</button>
+          </nav>
+          <div className="bg-landing-nav-actions">
+            <button type="button" className="bg-landing-btn-text" onClick={act(onSignIn)}>Sign in</button>
+            <button type="button" className="bg-landing-btn bg-landing-btn--small" onClick={act(onGetStarted)}>
+              Get started <ArrowUpRight size={15} aria-hidden="true" />
+            </button>
+          </div>
+          <button
+            type="button"
+            className="bg-landing-burger"
+            aria-expanded={menuOpen}
+            aria-controls="bg-landing-mobile"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
-      </nav>
-
-      <section className="landing-hero" id="home">
-        <div className="landing-hero-copy">
-          <div className="eyebrow"><span className="status-dot" /> BRAND GOVERNANCE, REIMAGINED</div>
-          <h1>Your brand.<br /><span>Your standards.</span><br />Protected.</h1>
-          <p>
-            Keep every message consistent with the brand you've built.
-            Review content against your approved guidelines before it reaches your audience.
-          </p>
-          <div className="landing-hero-actions">
-            <button className="primary-button" onClick={onGetStarted}>
-              Create your workspace <ArrowRight size={17} />
-            </button>
-            <a href="#how-it-works" className="text-link">See how it works <ArrowRight size={15} /></a>
-          </div>
-          <div className="landing-trust-line">
-            <LockKeyhole size={15} />
-            Human-controlled reviews. Your standards stay yours.
-          </div>
+        <div id="bg-landing-mobile" className="bg-landing-mobile" hidden={!menuOpen}>
+          {NAV.map((l) => (
+            <a key={l.id} href={`#${l.id}`} onClick={(e) => goTo(e, l.id)}>{l.label}</a>
+          ))}
+          <button type="button" onClick={act(onAbout)}>About us</button>
+          <button type="button" onClick={act(onSignIn)}>Sign in</button>
+          <button type="button" className="bg-landing-btn" onClick={act(onGetStarted)}>
+            Get started <ArrowRight size={16} aria-hidden="true" />
+          </button>
         </div>
+      </header>
 
-        <div className="landing-visual">
-          <div className="visual-glow" />
-          <div className="review-window">
-            <div className="review-window-top">
-              <div className="window-dots"><i /><i /><i /></div>
-              <span>CONTENT REVIEW</span>
-              <span className="review-window-status">ANALYSIS</span>
+      <main id="main">
+        {/* A — Hero */}
+        <section className="bg-landing-hero" id="home" aria-labelledby="bg-hero-title">
+          <div className="bg-landing-hero-copy">
+            <p className="bg-landing-eyebrow bg-landing-intro" style={{ '--i': 0 }}>Introducing Unwind BrandGuard</p>
+            <h1 id="bg-hero-title" className="bg-landing-display bg-landing-intro" style={{ '--i': 1 }}>
+              Every word shapes your brand.<br />
+              Make every word <em>count.</em>
+            </h1>
+            <p className="bg-landing-lede bg-landing-intro" style={{ '--i': 2 }}>
+              Your brand is more than a logo. It’s every claim, every campaign, and every message you put into the
+              world. BrandGuard brings your guidelines, AI-assisted reviews, and human decisions together—so your
+              content stays unmistakably yours.
+            </p>
+            <div className="bg-landing-actions bg-landing-intro" style={{ '--i': 3 }}>
+              <button type="button" className="bg-landing-btn" onClick={onGetStarted}>
+                Start protecting your brand <ArrowRight size={17} aria-hidden="true" />
+              </button>
+              <a className="bg-landing-btn bg-landing-btn--ghost" href="#how-it-works" onClick={(e) => goTo(e, 'how-it-works')}>
+                Explore how it works
+              </a>
             </div>
-            <div className="review-document">
-              <div className="document-label">CAMPAIGN COPY · DRAFT 04</div>
-              <h3>Make space for a healthier tomorrow.</h3>
-              <p>
-                Our platform helps people build healthier habits through
-                thoughtful reflection and consistent support.
-              </p>
-              <div className="document-highlight">
-                <span>REVIEW SUGGESTION</span>
-                Consider using your approved phrase: “supportive wellbeing journey”.
-              </div>
-            </div>
-            <div className="review-findings">
-              <div className="finding-heading">
-                <span><Sparkles size={15} /> REVIEW FINDINGS</span>
-                <small>02 ITEMS</small>
-              </div>
-              <div className="finding-row">
-                <span className="finding-dot warning" />
-                <div><strong>Terminology consistency</strong><small>Approved terminology reference</small></div>
-                <span className="finding-tag">REVIEW</span>
-              </div>
-              <div className="finding-row">
-                <span className="finding-dot good" />
-                <div><strong>Voice and tone</strong><small>Supportive tone guideline</small></div>
-                <span className="finding-tag clear">CLEAR</span>
-              </div>
-            </div>
-            <div className="review-window-footer">
-              <span><LockKeyhole size={13} /> Human approval required</span>
-              <span>BRANDGUARD <ShieldCheck size={14} /></span>
-            </div>
+            <p className="bg-landing-trust bg-landing-intro" style={{ '--i': 4 }}>
+              <ShieldCheck size={15} aria-hidden="true" /> AI-assisted analysis. Human-controlled decisions.
+            </p>
           </div>
-          <div className="floating-note">
-            <CheckCircle2 size={17} />
-            <span><strong>Purpose preserved</strong><small>Creator intent matters</small></span>
+          <div className="bg-landing-hero-visual">
+           <InteractiveBrandCore />
           </div>
-        </div>
-      </section>
+          <a className="bg-landing-scroll" href="#problem" onClick={(e) => goTo(e, 'problem')} aria-label="Scroll to the next section">
+            <span>Scroll</span><i aria-hidden="true" />
+          </a>
+        </section>
 
-      <section className="landing-principles" id="principles">
-        <div>
-          <span className="eyebrow">BUILT FOR CONSISTENCY</span>
-          <h2>One brand. Every touchpoint.</h2>
-        </div>
-        <p>
-          BrandGuard helps teams turn brand documentation into practical
-          guidance for everyday content decisions.
-        </p>
-      </section>
+        {/* B — The problem */}
+        <section className="bg-landing-section bg-landing-problem" id="problem" aria-labelledby="bg-problem-title">
+          <Reveal className="bg-landing-problem-copy">
+            <p className="bg-landing-eyebrow">The challenge</p>
+            <h2 id="bg-problem-title" className="bg-landing-display">
+              A brand isn’t lost overnight.<br />It fades one inconsistency at a time.
+            </h2>
+            <p className="bg-landing-lede">
+              A new campaign borrows a different phrase. A document makes a claim nobody checked. A colleague writes
+              in their own voice. None of it feels like a crisis, until your audience can no longer tell what you stand for.
+            </p>
+          </Reveal>
+          <Reveal delay={120}><DriftVisual /></Reveal>
+        </section>
 
-      <section className="landing-features" id="features">
-        <div className="landing-section-heading">
-          <span className="eyebrow">WHAT BRANDGUARD DOES</span>
-          <h2>Clarity before content goes live.</h2>
-          <p>Bring your standards, content and review decisions into one workflow.</p>
-        </div>
-        <div className="landing-feature-grid">
-          <FeatureCard icon={BookOpen} number="01" title="Define your standards"
-            description="Bring together your voice, tone, approved terminology, facts and content rules." />
-          <FeatureCard icon={Sparkles} number="02" title="Review with context"
-            description="Identify inconsistencies, unsupported claims and terminology that needs attention." />
-          <FeatureCard icon={FileCheck2} number="03" title="Improve with evidence"
-            description="Understand why something needs attention and see the relevant brand reference." />
-          <FeatureCard icon={Users} number="04" title="Keep humans in control"
-            description="Let authorised people review suggestions and make the final approval decision." />
-        </div>
-      </section>
+        {/* C — The solution */}
+        <section className="bg-landing-section bg-landing-solution" id="solution" aria-labelledby="bg-solution-title">
+          <Reveal className="bg-landing-head">
+            <p className="bg-landing-eyebrow">Meet your brand’s second set of eyes</p>
+            <h2 id="bg-solution-title" className="bg-landing-display">Intelligence that understands your standards.</h2>
+            <p className="bg-landing-lede">
+              BrandGuard uses the guidelines your organization defines to assist with content reviews. Try the sample
+              below: choose a finding to see the guideline behind it.
+            </p>
+          </Reveal>
+          <Reveal delay={120} className="bg-landing-section-illustration">
+            <img src="/illustrations/content-review.svg" alt="Illustration of AI-assisted content review" loading="lazy" />
+          </Reveal>
+        </section>
 
-      <section className="landing-workflow" id="how-it-works">
-        <div className="landing-section-heading">
-          <span className="eyebrow">A CLEARER WORKFLOW</span>
-          <h2>From brand rules to confident publishing.</h2>
-        </div>
-        <div className="workflow-steps">
-          <WorkflowStep number="01" title="Define" description="Add your approved brand guidelines and facts." />
-          <WorkflowStep number="02" title="Submit" description="Bring in the content you want to review." />
-          <WorkflowStep number="03" title="Improve" description="Understand findings and consider suggested changes." />
-          <WorkflowStep number="04" title="Approve" description="A human reviewer makes the final decision." />
-        </div>
-      </section>
+       {/* D — Capabilities */}
+{/* Features — BrandGuard capabilities */}
+<section
+  className="bg-landing-section bg-features-section"
+  id="features"
+  aria-labelledby="bg-features-title"
+>
+  <div className="bg-features-heading">
+    <p className="bg-landing-eyebrow">
+      ONE CONNECTED WORKFLOW
+    </p>
 
-      <section className="landing-cta">
-        <div className="landing-cta-icon">
-  <img src="/brandguard-logo.png" alt="Unwind BrandGuard" />
-</div>
-        <span className="eyebrow">YOUR BRAND, YOUR CONTROL</span>
-        <h2>Make every piece of content feel like you.</h2>
-        <p>Start building a more consistent and accountable content workflow.</p>
-        <button className="primary-button" onClick={onGetStarted}>
-          Get started with BrandGuard <ArrowRight size={17} />
-        </button>
-      </section>
+    <h2
+      id="bg-features-title"
+      className="bg-landing-display"
+    >
+      Everything your brand
+      <br />
+      needs to stay itself.
+    </h2>
 
-      <footer className="landing-footer">
-  <a className="landing-brand" href="#home">
-    <span className="brand-icon">
-  <img src="/brandguard-logo.png" alt="Unwind BrandGuard" />
-</span>
-    <span><strong>UNWIND</strong><small>BRANDGUARD</small></span>
-  </a>
-
-  <span>AI-assisted. Human-controlled.</span>
-
-  <div className="landing-legal-links">
-    <button onClick={onTerms}>Terms of Service</button>
-    <button onClick={onPrivacy}>Privacy Policy</button>
+    <p className="bg-features-intro">
+      From defining your brand identity to reviewing content
+      and approving decisions, everything works together
+      in one connected space.
+    </p>
   </div>
 
-  <span>UNWIND BRANDGUARD · PROTOTYPE</span>
-</footer>
-    </main>
+  <div className="bg-features-grid">
+    {[
+      {
+        number: "01",
+        title: "Define your brand.",
+        description:
+          "Keep your brand guidelines, voice, terminology, and visual identity in one place.",
+        image: "/illustrations/brand-guidelines.svg",
+      },
+      {
+        number: "02",
+        title: "Review with intelligence.",
+        description:
+          "Analyze content against your brand guidelines and identify inconsistencies before publishing.",
+        image: "/illustrations/content-review.svg",
+      },
+      {
+        number: "03",
+        title: "Keep humans in control.",
+        description:
+          "Review AI findings, make informed decisions, and approve content with confidence.",
+        image: "/illustrations/human-approval.svg",
+      },
+      {
+        number: "04",
+        title: "See the bigger picture.",
+        description:
+          "Understand recurring issues, review outcomes, and how consistently your brand is represented.",
+        image: "/illustrations/governance-insights.svg",
+      },
+    ].map((feature) => (
+      <article className="bg-feature-card" key={feature.number}>
+        <div className="bg-feature-illustration">
+          <img
+            src={feature.image}
+            alt={feature.title}
+            loading="lazy"
+          />
+        </div>
+
+        <div className="bg-feature-content">
+          <span className="bg-feature-number">
+            {feature.number} / 04
+          </span>
+
+          <h3>{feature.title}</h3>
+          <p>{feature.description}</p>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>
+
+        {/* E — How it works */}
+        <section className="bg-landing-section bg-landing-how" id="how-it-works" aria-labelledby="bg-how-title">
+          <Reveal className="bg-landing-head">
+            <p className="bg-landing-eyebrow">From guidelines to confidence</p>
+            <h2 id="bg-how-title" className="bg-landing-display">Four steps. One consistent brand.</h2>
+          </Reveal>
+          <ol className="bg-landing-steps">
+            {STEPS.map((s, i) => (
+              <Reveal as="li" key={s.n} delay={i * 110} className="bg-landing-step">
+                <span className="bg-landing-step-n" aria-hidden="true">{s.n}</span>
+                <h3>{s.title}</h3>
+                <p>{s.text}</p>
+              </Reveal>
+            ))}
+          </ol>
+        </section>
+
+        {/* F — Human in the loop */}
+        <section className="bg-landing-section bg-landing-human" id="principles" aria-labelledby="bg-human-title">
+          <Reveal className="bg-landing-human-copy">
+            <h2 id="bg-human-title" className="bg-landing-display">
+              AI can recommend.<br />People remain responsible.
+            </h2>
+            <p className="bg-landing-lede">
+              BrandGuard helps surface potential issues and explain them in context. It doesn’t replace your team’s
+              judgment. Every final content decision belongs to the people responsible for your brand.
+            </p>
+          </Reveal>
+          <Reveal delay={120} className="bg-landing-layers" aria-label="AI analysis sits beneath human judgment">
+            <div className="bg-landing-layer is-ai">
+              <span>Layer one · AI analysis</span>
+              <p>Flags “guarantees lasting results” as unsupported by the approved facts.</p>
+              <p>Suggests: “helps build consistent habits.”</p>
+            </div>
+            <div className="bg-landing-layer is-human">
+              <span>Layer two · Human judgment</span>
+              <p>Reviewer reads the finding, the reference, and the suggestion.</p>
+              <p className="bg-landing-layer-decision">Decision: <strong>Approve with edit</strong></p>
+            </div>
+            <p className="bg-landing-demo-tag">Illustrative example</p>
+          </Reveal>
+        </section>
+
+        {/* G — Insights */}
+        <section className="bg-landing-section" id="insights" aria-labelledby="bg-insights-title">
+          <Reveal className="bg-landing-head">
+            <h2 id="bg-insights-title" className="bg-landing-display">See the patterns behind every decision.</h2>
+          </Reveal>
+          <Reveal delay={120} className="bg-landing-section-illustration">
+            <img src="/illustrations/governance-insights.svg" alt="Brand governance insights illustration" loading="lazy" />
+          </Reveal>
+        </section>
+
+        {/* H — Final CTA */}
+        <section className="bg-landing-cta" id="start" aria-labelledby="bg-cta-title">
+          <Reveal className="bg-landing-cta-copy">
+            <h2 id="bg-cta-title" className="bg-landing-display">
+              Your brand has a voice.<br />Keep it unmistakable.
+            </h2>
+            <p className="bg-landing-lede">
+              Build a more consistent, accountable content workflow with Unwind BrandGuard.
+            </p>
+            <button type="button" className="bg-landing-btn" onClick={onGetStarted}>
+              Create your workspace <ArrowRight size={17} aria-hidden="true" />
+            </button>
+          </Reveal>
+        </section>
+      </main>
+
+      {/* I — Footer */}
+      <footer className="bg-landing-footer">
+        <div className="bg-landing-footer-top">
+          <div>
+            <Logo onClick={(e) => goTo(e, 'home')} />
+            <p>AI-assisted brand reviews, with people making the final call.</p>
+          </div>
+          <nav aria-label="Footer">
+            <a href="#features" onClick={(e) => goTo(e, 'features')}>Features</a>
+            <a href="#how-it-works" onClick={(e) => goTo(e, 'how-it-works')}>How it works</a>
+            <button type="button" onClick={onAbout}>About us</button>
+            <button type="button" onClick={onSignIn}>Sign in</button>
+            <button type="button" onClick={onTerms}>Terms of Service</button>
+            <button type="button" onClick={onPrivacy}>Privacy Policy</button>
+          </nav>
+        </div>
+        <p className="bg-landing-footer-note">© Unwind BrandGuard. Prototype.</p>
+      </footer>
+    </div>
   )
 }
