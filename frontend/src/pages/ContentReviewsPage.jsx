@@ -1,11 +1,11 @@
-import BrandDNAIcon from '../components/BrandDNAIcon.jsx'
 
 import { useEffect, useState } from 'react';
 import {
   FileSearch, Plus, Search, AlertTriangle, CheckCircle2,
   XCircle, Eye, RefreshCw, UploadCloud,
   FileText, Image as ImageIcon, ExternalLink, MessageSquare,
-  Send, Clock
+  Send, Clock,
+  ShieldCheck,
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import './ContentReviewsPage.css';
@@ -466,7 +466,7 @@ export default function ContentReviewsPage({ workspace, role }) {
       <div className="cr-heading">
         <div>
           <span className="cr-eyebrow">
-            <BrandDNAIcon size={14} /> BRAND GOVERNANCE
+            <ShieldCheck size={14} /> BRAND GOVERNANCE
           </span>
           <h1>Content Reviews</h1>
           <p>
@@ -594,7 +594,7 @@ export default function ContentReviewsPage({ workspace, role }) {
                   ? 'Change selected file'
                   : 'Choose an image or PDF'}
               </strong>
-              <span>PNG, JPG, WEBP or PDF Ã‚Â· Maximum 10 MB</span>
+              <span>PNG, JPG, WEBP or PDF · Maximum 10 MB</span>
             </label>
 
             {selectedFile && (
@@ -692,13 +692,13 @@ export default function ContentReviewsPage({ workspace, role }) {
                   </div>
 
                   <span className="cr-review-meta">
-                    {review.content_type.replaceAll('_', ' ')} Ã‚Â·{' '}
+                    {review.content_type.replaceAll('_', ' ')} ·{' '}
                     {new Date(review.created_at).toLocaleDateString()}
                   </span>
 
                   <span className="cr-review-meta">
                     {(review.findings || []).length} finding(s)
-                    {review.asset_path ? ' Ã‚Â· Asset attached' : ''}
+                    {review.asset_path ? ' · Asset attached' : ''}
                   </span>
                 </button>
               ))}
@@ -722,7 +722,7 @@ export default function ContentReviewsPage({ workspace, role }) {
                   <span className="cr-eyebrow">REVIEW DETAILS</span>
                   <h2>{selected.title}</h2>
                   <p>
-                    {selected.content_type.replaceAll('_', ' ')} Ã‚Â·{' '}
+                    {selected.content_type.replaceAll('_', ' ')} ·{' '}
                     {new Date(selected.created_at).toLocaleString()}
                   </p>
                 </div>
@@ -754,7 +754,7 @@ export default function ContentReviewsPage({ workspace, role }) {
                           {selected.asset_name || 'Uploaded asset'}
                         </strong>
                         <span>
-                          {selected.asset_mime_type || 'File'} Ã‚Â·{' '}
+                          {selected.asset_mime_type || 'File'} ·{' '}
                           {selected.asset_size
                             ? `${(
                                 selected.asset_size / (1024 * 1024)
@@ -1048,7 +1048,7 @@ export default function ContentReviewsPage({ workspace, role }) {
                           <strong>
                             {comment.author_name ||
                               (comment.created_by
-                                ? `User Ã‚Â· ${comment.created_by.slice(0, 8)}Ã¢â‚¬Â¦`
+                                ? `User · ${comment.created_by.slice(0, 8)}…`
                                 : 'Former member')}
                           </strong>
                           <span>
