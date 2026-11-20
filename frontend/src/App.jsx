@@ -1,4 +1,3 @@
-import BrandDNAIcon from './components/BrandDNAIcon.jsx'
 
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -15,7 +14,8 @@ import {
   CircleHelp,
   Moon,
   Sun,
-  ArrowUpRight
+  ArrowUpRight,
+  ShieldCheck,
 } from 'lucide-react'
 
 import GuidedTour from './components/GuidedTour'
@@ -406,7 +406,7 @@ export default function App() {
   if (authLoading) {
     return (
       <div className="loading-screen">
-        <BrandDNAIcon size={30} />
+        <ShieldCheck size={30} />
         <span>Preparing BrandGuard...</span>
       </div>
     )
@@ -727,18 +727,7 @@ export default function App() {
             BrandGuard <span>/</span> {active}
           </div>
 
-          <button
-            type="button"
-            className="tour-help-button"
-            onClick={() => {
-              setActive('Overview')
-              setTourRestart(value => value + 1)
-            }}
-            title="Take a tour of BrandGuard"
-          >
-            <CircleHelp size={17} />
-            <span>Take a Tour</span>
-          </button>
+          
 
           <div className="topbar-right">
             <div className="top-status">
@@ -774,7 +763,7 @@ export default function App() {
                 textAlign: 'center'
               }}>
                 <div style={{ marginBottom: '18px' }}>
-                  <BrandDNAIcon size={38} />
+                  <ShieldCheck size={38} />
                 </div>
 
                 <h2>Complete Your Profile</h2>
@@ -884,8 +873,8 @@ export default function App() {
 
         <footer className="app-footer">
           <span>
-            UNWIND BRANDGUARD <span>Ã‚Â·</span> Prototype v0.4
-            <span>Ã‚Â·</span> AI-assisted, human-controlled governance
+            UNWIND BRANDGUARD <span>·</span> Prototype v0.4
+            <span>·</span> AI-assisted, human-controlled governance
           </span>
 
           <div className="app-legal-links">
