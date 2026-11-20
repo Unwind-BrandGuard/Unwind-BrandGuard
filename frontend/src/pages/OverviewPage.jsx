@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import BrandDNAIcon from '../components/BrandDNAIcon.jsx'
 import {
   ShieldCheck,
   BookOpen,
@@ -216,9 +217,9 @@ export default function OverviewPage({ workspace, setActive }) {
           </button>
         </div>
 
-        <div className="welcome-icon">
-          <ShieldCheck size={65} />
-        </div>
+    <div className="welcome-icon">
+  <BrandDNAIcon size={170} />
+</div>
       </section>
 
       {error && (
