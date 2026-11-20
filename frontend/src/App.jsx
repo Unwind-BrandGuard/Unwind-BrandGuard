@@ -14,7 +14,7 @@ import {
   AlertTriangle
 } from 'lucide-react'
 import GuidedTour from './components/GuidedTour'
-import { CircleHelp } from 'lucide-react'
+import { CircleHelp, Moon, Sun, ArrowUpRight } from 'lucide-react'
 import { supabase } from './supabase'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
@@ -69,8 +69,35 @@ const [tourRunning, setTourRunning] = useState(false)
   const [workspaceRetry, setWorkspaceRetry] = useState(0)
   const [workspaceError, setWorkspaceError] = useState('')
 
-  const [active, setActive] = useState('Overview')
-  const [menuOpen, setMenuOpen] = useState(false)
+const [active, setActive] = useState('Overview')
+const [menuOpen, setMenuOpen] = useState(false)
+const [showLanding, setShowLanding] = useState(false)
+
+const [theme, setTheme] = useState(() => {
+  try {
+    const savedTheme = localStorage.getItem('brandguard-theme')
+
+    return savedTheme === 'dark' || savedTheme === 'light'
+      ? savedTheme
+      : 'light'
+  } catch {
+    return 'light'
+  }
+})
+
+useEffect(() => {
+  document.documentElement.setAttribute('data-theme', theme)
+
+  try {
+    localStorage.setItem('brandguard-theme', theme)
+  } catch {
+    // Theme still works when browser storage is unavailable.
+  }
+}, [theme])
+
+function toggleTheme() {
+  setTheme(current => current === 'light' ? 'dark' : 'light')
+}
 
   const workspaceRequests = useRef(new Map())
 
@@ -396,7 +423,32 @@ useEffect(() => {
   // -----------------------------------------
   // PUBLIC LANDING PAGE AND AUTHENTICATION
   // -----------------------------------------
-
+if (showLanding && session) {
+  return (
+    <LandingPage
+      onGetStarted={() => {
+        setShowLanding(false)
+        setActive('Overview')
+      }}
+      onSignIn={() => {
+        setShowLanding(false)
+        setActive('Overview')
+      }}
+      onAbout={() => {
+        setShowLanding(false)
+        openAboutPage()
+      }}
+      onTerms={() => {
+        setShowLanding(false)
+        setLegalPage('terms')
+      }}
+      onPrivacy={() => {
+        setShowLanding(false)
+        setLegalPage('privacy')
+      }}
+    />
+  )
+}
   if (!session) {
     if (!authOpen) {
       return (
@@ -512,18 +564,29 @@ useEffect(() => {
 )}
       <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="brand">
-          <div className="brand-icon">
-            <img
-              src="/brandguard-logo.png"
-              alt="Unwind BrandGuard"
-              className="brand-logo"
-            />
-          </div>
+  <button
+    type="button"
+    className="brand-home-button"
+    onClick={() => {
+      setShowLanding(true)
+      setMenuOpen(false)
+    }}
+    title="Visit BrandGuard homepage"
+    aria-label="Go to BrandGuard landing page"
+  >
+    <div className="brand-icon">
+      <img
+        src="/brandguard-logo.png"
+        alt=""
+        className="brand-logo"
+      />
+    </div>
 
-          <div>
-            <strong>UNWIND</strong>
-            <span>BRANDGUARD</span>
-          </div>
+    <div className="brand-home-text">
+      <strong>UNWIND</strong>
+      <span>BRANDGUARD</span>
+    </div>
+  </button>
 
           <button
             className="mobile-close"
@@ -561,15 +624,27 @@ useEffect(() => {
               {item.name}
             </button>
           ))}
-        </nav>
+                </nav>
 
         <div className="sidebar-bottom">
-          <div className="protection-card">
-            <ShieldCheck size={20} />
-            <strong>Governance workspace</strong>
-            <span>Human-controlled content review.</span>
-          </div>
+          <button
+            type="button"
+            className="sidebar-tour-button"
+  onClick={() => {
+    setActive('Overview')
+    setMenuOpen(false)
+    setTourRestart(value => value + 1)
+  }}
+>
+  <CircleHelp size={19} />
 
+  <span className="sidebar-tour-copy">
+    <strong>Take a Tour</strong>
+    <small>Explore BrandGuard</small>
+  </span>
+
+  <ArrowUpRight size={17} />
+</button>
           <div className="profile">
             <div className="avatar">
               {email.charAt(0).toUpperCase()}
@@ -615,22 +690,26 @@ useEffect(() => {
           <div className="breadcrumb">
             BrandGuard <span>/</span> {active}
           </div>
-<button
-  type="button"
-  className="tour-help-button"
-  onClick={() => {
-    setActive('Overview')
-    setTourRestart(value => value + 1)
-  }}
-  title="Take a tour of BrandGuard"
->
-  <CircleHelp size={17} />
-  <span>Take a Tour</span>
-</button>
-          <div className="top-status">
-            <span className="status-dot" />
-            Authenticated workspace
-          </div>
+
+          
+
+<div className="topbar-right">
+  <div className="top-status">
+    <span className="status-dot" />
+    Authenticated workspace
+  </div>
+
+  <button
+    type="button"
+    className="theme-toggle"
+    onClick={toggleTheme}
+    aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+    title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+  >
+    {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
+    <span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
+  </button>
+</div>
         </header>
 
         <div className="page">
