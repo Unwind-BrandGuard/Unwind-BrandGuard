@@ -716,3 +716,141 @@
 @media (prefers-reduced-motion: reduce) {
   .bg-landing .bg-landing-hero-illustration { animation: none; }
 }
+
+
+/* =========================================================
+   STEP 1 — Cinematic hero entrance (scoped to hero only)
+   ========================================================= */
+@keyframes bg-cinematic-word {
+  from { opacity: 0; transform: translate3d(0, 0.85em, 0) rotate(2deg); filter: blur(5px); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) rotate(0); filter: blur(0); }
+}
+@keyframes bg-cinematic-core {
+  from { opacity: 0; transform: translate3d(0, 28px, 0) scale(.91); filter: blur(8px); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0); }
+}
+@keyframes bg-cinematic-soft-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.bg-landing .bg-landing-cinematic-title {
+  display: block;
+  overflow: visible;
+}
+.bg-landing .bg-landing-title-line {
+  display: block;
+}
+.bg-landing .bg-landing-title-word {
+  display: inline-block;
+  margin-right: .22em;
+  opacity: 0;
+  transform-origin: 50% 100%;
+  animation: bg-cinematic-word .82s cubic-bezier(.2,.8,.2,1) both;
+  animation-delay: calc(180ms + var(--word-index) * 95ms);
+  will-change: transform, opacity;
+}
+.bg-landing .bg-landing-title-line .bg-landing-title-word:last-child { margin-right: 0; }
+.bg-landing .bg-landing-hero-copy > .bg-landing-intro {
+  animation-name: bg-cinematic-soft-rise;
+  animation-duration: .8s;
+  animation-timing-function: cubic-bezier(.2,.8,.2,1);
+  animation-fill-mode: both;
+}
+.bg-landing .bg-landing-hero-copy > .bg-landing-eyebrow { animation-delay: 80ms; }
+.bg-landing .bg-landing-hero-copy > .bg-landing-lede { animation-delay: 970ms; }
+.bg-landing .bg-landing-hero-copy > .bg-landing-actions { animation-delay: 1120ms; }
+.bg-landing .bg-landing-hero-copy > .bg-landing-trust { animation-delay: 1280ms; }
+.bg-landing .bg-landing-hero-visual--cinematic {
+  animation: bg-cinematic-core 1.25s cubic-bezier(.18,.8,.2,1) 400ms both;
+  transform-origin: center center;
+}
+@media (max-width: 700px) {
+  .bg-landing .bg-landing-title-word { margin-right: .18em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bg-landing .bg-landing-title-word,
+  .bg-landing .bg-landing-hero-visual--cinematic,
+  .bg-landing .bg-landing-hero-copy > .bg-landing-intro {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    will-change: auto;
+  }
+}
+
+/* ===== STEP 2: MAGNETIC BUTTONS ===== */
+
+.bg-landing .bg-magnetic-btn {
+  --mag-x: 0px;
+  --mag-y: 0px;
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  transform: translate3d(var(--mag-x), var(--mag-y), 0);
+  transition:
+    transform 260ms cubic-bezier(.2, .8, .2, 1),
+    box-shadow 300ms ease;
+  will-change: transform;
+}
+
+.bg-landing .bg-magnetic-btn:hover {
+  transform: translate3d(var(--mag-x), var(--mag-y), 0);
+  box-shadow: 0 14px 35px rgba(31, 75, 48, .22);
+}
+
+/* Mouse-following soft glow */
+.bg-landing .bg-magnetic-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+
+  background: radial-gradient(
+    130px circle at var(--mouse-x) var(--mouse-y),
+    rgba(255, 255, 255, .26),
+    transparent 75%
+  );
+
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.bg-landing .bg-magnetic-btn:hover::before {
+  opacity: 1;
+}
+
+/* Animated arrow */
+.bg-landing .bg-magnetic-btn svg {
+  transition: transform 300ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.bg-landing .bg-magnetic-btn:hover svg {
+  transform: translate(4px, -1px);
+}
+
+/* Press feedback */
+.bg-landing .bg-magnetic-btn:active {
+  transform:
+    translate3d(var(--mag-x), var(--mag-y), 0)
+    scale(.97);
+}
+
+/* Touch devices and accessibility */
+@media (hover: none), (prefers-reduced-motion: reduce) {
+  .bg-landing .bg-magnetic-btn,
+  .bg-landing .bg-magnetic-btn:hover,
+  .bg-landing .bg-magnetic-btn:active {
+    transform: none;
+    transition: none;
+  }
+
+  .bg-landing .bg-magnetic-btn::before {
+    display: none;
+  }
+}
