@@ -220,11 +220,19 @@
   font-weight: 700;
 }
 
-.member-identity div:last-child {
+.member-info {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 5px;
   min-width: 0;
+  flex: 1;
+}
+
+.member-info strong,
+.member-info span {
+  display: block;
+  line-height: 1.4;
 }
 
 .member-identity strong {

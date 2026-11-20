@@ -281,9 +281,8 @@ export default function App() {
         if (authError) throw authError
 
         const authenticatedUser = authData.user
-        const authenticatedUserId = authenticatedUser?.id
 
-        if (!authenticatedUserId || authenticatedUserId !== user.id) {
+        if (!authenticatedUser?.id || authenticatedUser.id !== user.id) {
           throw new Error(
             'Your session could not be verified. Please sign in again.'
           )
@@ -293,24 +292,95 @@ export default function App() {
         // ACCEPT WORKSPACE INVITATION
         // -----------------------------------------
 
+        let acceptedWorkspaceId = null
+
+        // Wait until the invited user completes their profile.
+        if (invitationToken && needsInvitationName) {
+          return
+        }
+
+        if (invitationToken) {
+          const { data: sessionData, error: sessionError } =
+            await supabase.auth.getSession()
+
+          if (sessionError) throw sessionError
+
+          const accessToken = sessionData.session?.access_token
+
+          if (!accessToken) {
+            throw new Error(
+              'Your session has expired. Please sign in again.'
+            )
+          }
+
+          const response = await fetch(
+            `${API_BASE_URL.replace(/\/$/, '')}/api/invitations/accept`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${accessToken}`
+              },
+              body: JSON.stringify({
+                token: invitationToken
+              })
+            }
+          )
+
+          const result = await response.json()
+
+          if (!response.ok || !result.success) {
+            throw new Error(
+              result.message || 'Unable to accept your invitation.'
+            )
+          }
+
+          acceptedWorkspaceId = result.workspace_id
+
+          if (!acceptedWorkspaceId) {
+            throw new Error(
+              'Invitation accepted, but the workspace ID was not returned.'
+            )
+          }
+
+          // Discard any previously cached membership.
+          workspaceRequests.current.delete(user.id)
+        }
+
         // -----------------------------------------
-        // CHECK EXISTING WORKSPACE MEMBERSHIP
+        // LOAD CURRENT WORKSPACE MEMBERSHIP
         // -----------------------------------------
 
         let request = workspaceRequests.current.get(user.id)
 
         if (!request) {
           request = (async () => {
+            let membershipQuery = supabase
+              .from('workspace_members')
+              .select('workspace_id, role')
+              .eq('user_id', user.id)
+
+            // Verify the membership created by the invitation.
+            if (acceptedWorkspaceId) {
+              membershipQuery = membershipQuery.eq(
+                'workspace_id',
+                acceptedWorkspaceId
+              )
+            }
+
             const { data: memberships, error: membershipError } =
-              await supabase
-                .from('workspace_members')
-                .select('workspace_id, role')
-                .eq('user_id', user.id)
+              await membershipQuery
 
             if (membershipError) throw membershipError
 
             let membership = memberships?.[0]
             let currentWorkspace
+
+            if (acceptedWorkspaceId && !membership) {
+              throw new Error(
+                'Your invitation was accepted, but the new workspace membership could not be loaded. Please retry.'
+              )
+            }
 
             if (membership) {
               const { data, error } = await supabase
@@ -358,6 +428,21 @@ export default function App() {
 
         setWorkspace(result.workspace)
         setRole(result.role)
+        setWorkspaceError('')
+
+        // Remove the invitation token only after success.
+        if (invitationToken && acceptedWorkspaceId) {
+          const url = new URL(window.location.href)
+          url.searchParams.delete('token')
+
+          window.history.replaceState(
+            {},
+            document.title,
+            `${url.pathname}${url.search}${url.hash}`
+          )
+
+          setInvitationToken('')
+        }
       } catch (error) {
         console.error('Workspace loading failed:', error)
 
@@ -380,7 +465,12 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [session?.user?.id, invitationToken, workspaceRetry])
+  }, [
+    session?.user?.id,
+    invitationToken,
+    workspaceRetry,
+    needsInvitationName
+  ])
 
   // -----------------------------------------
   // LOGOUT
