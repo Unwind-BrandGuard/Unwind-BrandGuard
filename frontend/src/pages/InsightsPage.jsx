@@ -521,7 +521,7 @@ const outcomeData = useMemo(() => {
                 />
 
                 <Tooltip
-                  contentStyle={TOOLTIP_STYLE}
+                  contentStyle={tooltipStyle}
                   cursor={{ stroke: '#36564d' }}
                 />
 
@@ -673,7 +673,7 @@ activeDot={{
                     }
                   />
 
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Tooltip contentStyle={tooltipStyle} />
 
                   <Bar
                     dataKey="count"

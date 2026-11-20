@@ -2,9 +2,10 @@
 import { useEffect, useState } from 'react';
 import {
   FileSearch, Plus, Search, AlertTriangle, CheckCircle2,
-  ShieldCheck, XCircle, Eye, RefreshCw, UploadCloud,
+  XCircle, Eye, RefreshCw, UploadCloud,
   FileText, Image as ImageIcon, ExternalLink, MessageSquare,
-  Send, Clock
+  Send, Clock,
+  ShieldCheck,
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import './ContentReviewsPage.css';

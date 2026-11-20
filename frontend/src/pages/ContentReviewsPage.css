@@ -489,6 +489,231 @@
 }
 
 
+/* PREMIUM CONTENT REVIEWS — THEME OVERRIDES */
+
+.cr-page {
+  color: var(--text);
+}
+
+.cr-heading h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(30px, 3vw, 42px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+
+.cr-heading p,
+.cr-panel-heading p,
+.cr-review-meta,
+.cr-form-footer span,
+.cr-findings-heading span,
+.cr-optional,
+.cr-location,
+.cr-asset-loading {
+  color: var(--muted);
+}
+
+.cr-eyebrow,
+.cr-asset-meta,
+.cr-asset-open {
+  color: var(--accent);
+}
+
+.cr-stats > div,
+.cr-panel {
+  background: var(--panel);
+  border-color: var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  transition: border-color .22s ease, box-shadow .22s ease,
+              transform .22s ease;
+}
+
+.cr-stats > div:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+}
+
+.cr-stats span { color: var(--muted); }
+
+.cr-stats strong {
+  color: var(--text);
+  font: 500 30px 'Playfair Display', Georgia, serif;
+}
+
+.cr-panel-heading h2 {
+  color: var(--text);
+  font: 500 22px 'Playfair Display', Georgia, serif;
+}
+
+.cr-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--button-text);
+}
+
+.cr-primary:hover:not(:disabled) {
+  background: var(--accent);
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(45, 78, 56, .14);
+}
+
+.cr-secondary,
+.cr-icon-button {
+  background: var(--panel);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.cr-secondary:hover,
+.cr-icon-button:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.cr-form label { color: var(--text); }
+
+.cr-form input,
+.cr-form select,
+.cr-form textarea,
+.cr-search,
+.cr-search input {
+  background: var(--input-bg);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.cr-form input:focus,
+.cr-form select:focus,
+.cr-form textarea:focus,
+.cr-search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.cr-review-item,
+.cr-finding,
+.cr-content-box,
+.cr-asset-box,
+.cr-upload-box {
+  background: var(--panel2);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.cr-review-item {
+  transition: background .2s ease, border-color .2s ease,
+              transform .2s ease;
+}
+
+.cr-review-item:hover {
+  background: var(--hover-bg);
+  border-color: var(--accent);
+  transform: translateX(2px);
+}
+
+.cr-review-item.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.cr-review-item-top strong,
+.cr-empty strong,
+.cr-asset-meta strong,
+.cr-upload-label strong {
+  color: var(--text);
+}
+
+.cr-empty,
+.cr-finding p,
+.cr-content-box,
+.cr-asset-meta span,
+.cr-upload-label span,
+.cr-selected-file {
+  color: var(--muted);
+}
+
+.cr-summary,
+.cr-no-findings,
+.cr-evidence,
+.cr-recommendation,
+.cr-observed,
+.cr-selected-file {
+  background: var(--accent-soft);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.cr-detail h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.cr-evidence strong,
+.cr-recommendation strong,
+.cr-upload-label {
+  color: var(--accent) !important;
+}
+
+.cr-finding-source {
+  color: var(--accent);
+  border-color: var(--border);
+  background: var(--accent-soft);
+}
+
+.cr-actions {
+  border-color: var(--border);
+}
+
+.cr-status {
+  background: var(--panel2);
+  color: var(--muted);
+}
+
+.cr-status.status-approved {
+  background: rgba(69, 137, 88, .12);
+  color: #3d8654;
+}
+
+.cr-status.status-rejected {
+  background: rgba(176, 81, 76, .12);
+  color: #ad504a;
+}
+
+.cr-status.status-changes_requested {
+  background: rgba(168, 125, 51, .12);
+  color: #9a722d;
+}
+
+.cr-status.status-in_review {
+  background: rgba(89, 117, 156, .12);
+  color: #5876a0;
+}
+
+[data-theme='dark'] .cr-status.status-approved { color: #a4d5af; }
+[data-theme='dark'] .cr-status.status-rejected { color: #e9aaa4; }
+[data-theme='dark'] .cr-status.status-changes_requested { color: #e0c58e; }
+[data-theme='dark'] .cr-status.status-in_review { color: #afc5e6; }
+
+.cr-asset-image {
+  background: var(--panel2);
+}
+
+.cr-asset-pdf {
+  border-color: var(--border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cr-stats > div:hover,
+  .cr-review-item:hover,
+  .cr-primary:hover {
+    transform: none;
+  }
+}
 /* Collaborative reviewer discussion */
 
 .cr-comments {

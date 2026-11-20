@@ -1,7 +1,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import {
-  ShieldCheck,
   LayoutDashboard,
   BookOpen,
   FileSearch,
@@ -15,7 +14,8 @@ import {
   CircleHelp,
   Moon,
   Sun,
-  ArrowUpRight
+  ArrowUpRight,
+  ShieldCheck,
 } from 'lucide-react'
 
 import GuidedTour from './components/GuidedTour'
@@ -727,18 +727,7 @@ export default function App() {
             BrandGuard <span>/</span> {active}
           </div>
 
-          <button
-            type="button"
-            className="tour-help-button"
-            onClick={() => {
-              setActive('Overview')
-              setTourRestart(value => value + 1)
-            }}
-            title="Take a tour of BrandGuard"
-          >
-            <CircleHelp size={17} />
-            <span>Take a Tour</span>
-          </button>
+          
 
           <div className="topbar-right">
             <div className="top-status">

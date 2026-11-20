@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import {
   ArrowLeft,
   ArrowUpRight,
-  ShieldCheck,
   Code2,
   ClipboardList,
   FileSearch,
@@ -10,7 +9,8 @@ import {
   UserCheck,
   Eye,
   BookOpen,
-  Repeat
+  Repeat,
+  ShieldCheck,
 } from 'lucide-react'
 
 import '../App.css'

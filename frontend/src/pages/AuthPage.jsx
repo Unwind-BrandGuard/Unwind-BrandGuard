@@ -1,10 +1,10 @@
 
 import { useState } from 'react'
 import {
-  ShieldCheck,
   LockKeyhole,
   Mail,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck,
 } from 'lucide-react'
 import { supabase } from '../supabase'
 

@@ -1,5 +1,5 @@
 
-import { ArrowLeft, ShieldCheck } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import './TermsOfServicePage.css'
 
 export default function TermsOfServicePage({ onBack }) {
@@ -193,7 +193,7 @@ export default function TermsOfServicePage({ onBack }) {
         <section>
           <h2>11. Disclaimer of Warranties</h2>
           <p>
-            The platform is provided on an “as available” basis.
+            The platform is provided on an "as available" basis.
             To the extent permitted by applicable law, no warranties
             are made that the service will always be accurate,
             uninterrupted, secure or suitable for every purpose.

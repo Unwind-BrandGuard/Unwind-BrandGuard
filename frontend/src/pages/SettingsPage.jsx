@@ -1,6 +1,8 @@
 
 import { useEffect, useState } from 'react'
-import { Settings, Users, ShieldCheck, Save } from 'lucide-react'
+import { Settings, Users, Save,
+  ShieldCheck,
+} from 'lucide-react'
 import { supabase } from '../supabase'
 import { useToast } from '../components/feedback/ToastProvider'
 import { getFriendlyError } from '../utils/errorMessages'
