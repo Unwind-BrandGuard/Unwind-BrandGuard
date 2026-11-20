@@ -1,5 +1,6 @@
+import BrandDNAIcon from '../components/BrandDNAIcon.jsx'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ArrowRight, ArrowUpRight, Menu, X, ShieldCheck } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Menu, X } from 'lucide-react'
 import '../App.css' 
 import InteractiveBrandCore from "../components/landing/InteractiveBrandCore";// keeps theme variables; landing styles below are fully namespaced
 import './LandingPage.css'
@@ -30,14 +31,14 @@ const DRIFT = [
   {
     key: 'tone',
     tab: 'Off-brand tone',
-    approved: 'Here when you’re ready.',
-    drifted: 'ACT NOW. Don’t miss out!!',
+    approved: 'Here when youÃ¢â‚¬â„¢re ready.',
+    drifted: 'ACT NOW. DonÃ¢â‚¬â„¢t miss out!!',
     note: 'Urgency tactics contradict a calm, supportive voice, even when the facts are right.'
   },
   {
     key: 'approvals',
     tab: 'Unclear approvals',
-    approved: 'Approved by Brand Lead · v4',
+    approved: 'Approved by Brand Lead Ã‚Â· v4',
     drifted: 'final_v7_REALLY-final.pdf. Who signed off?',
     note: 'When nobody can say who decided, nobody is accountable for what went out.'
   }
@@ -391,7 +392,7 @@ useEffect(() => {
       </header>
 
       <main id="main">
-        {/* A — Hero */}
+        {/* A Ã¢â‚¬â€ Hero */}
         <section className="bg-landing-hero" id="home" aria-labelledby="bg-hero-title">
           <div className="bg-landing-hero-copy">
             <p className="bg-landing-eyebrow bg-landing-intro" style={{ '--i': 0 }}>Introducing Unwind BrandGuard</p>
@@ -417,8 +418,8 @@ useEffect(() => {
               </span>
             </h1>
             <p className="bg-landing-lede bg-landing-intro" style={{ '--i': 2 }}>
-              Your brand is more than a logo. It’s every claim, every campaign, and every message you put into the
-              world. BrandGuard brings your guidelines, AI-assisted reviews, and human decisions together—so your
+              Your brand is more than a logo. ItÃ¢â‚¬â„¢s every claim, every campaign, and every message you put into the
+              world. BrandGuard brings your guidelines, AI-assisted reviews, and human decisions togetherÃ¢â‚¬â€so your
               content stays unmistakably yours.
             </p>
             <div className="bg-landing-actions bg-landing-intro" style={{ '--i': 3 }}>
@@ -437,7 +438,7 @@ useEffect(() => {
               </a>
             </div>
             <p className="bg-landing-trust bg-landing-intro" style={{ '--i': 4 }}>
-              <ShieldCheck size={15} aria-hidden="true" /> AI-assisted analysis. Human-controlled decisions.
+              <BrandDNAIcon size={15} aria-hidden="true" /> AI-assisted analysis. Human-controlled decisions.
             </p>
           </div>
           <div className="bg-landing-hero-visual bg-landing-hero-visual--cinematic">
@@ -448,12 +449,12 @@ useEffect(() => {
           </a>
         </section>
 
-        {/* B — The problem */}
+        {/* B Ã¢â‚¬â€ The problem */}
         <section className="bg-landing-section bg-landing-problem" id="problem" aria-labelledby="bg-problem-title">
           <Reveal className="bg-landing-problem-copy">
             <p className="bg-landing-eyebrow">The challenge</p>
             <h2 id="bg-problem-title" className="bg-landing-display">
-              A brand isn’t lost overnight.<br />It fades one inconsistency at a time.
+              A brand isnÃ¢â‚¬â„¢t lost overnight.<br />It fades one inconsistency at a time.
             </h2>
             <p className="bg-landing-lede">
               A new campaign borrows a different phrase. A document makes a claim nobody checked. A colleague writes
@@ -463,10 +464,10 @@ useEffect(() => {
           <Reveal delay={120}><DriftVisual /></Reveal>
         </section>
 
-        {/* C — The solution */}
+        {/* C Ã¢â‚¬â€ The solution */}
         <section className="bg-landing-section bg-landing-solution" id="solution" aria-labelledby="bg-solution-title">
           <Reveal className="bg-landing-head">
-            <p className="bg-landing-eyebrow">Meet your brand’s second set of eyes</p>
+            <p className="bg-landing-eyebrow">Meet your brandÃ¢â‚¬â„¢s second set of eyes</p>
             <h2 id="bg-solution-title" className="bg-landing-display">Intelligence that understands your standards.</h2>
             <p className="bg-landing-lede">
               BrandGuard uses the guidelines your organization defines to assist with content reviews. Try the sample
@@ -478,8 +479,8 @@ useEffect(() => {
 </Reveal>
         </section>
 
-       {/* D — Capabilities */}
-{/* Features — BrandGuard capabilities */}
+       {/* D Ã¢â‚¬â€ Capabilities */}
+{/* Features Ã¢â‚¬â€ BrandGuard capabilities */}
 <section
   className="bg-landing-section bg-features-section"
   id="features"
@@ -567,7 +568,7 @@ useEffect(() => {
   </div>
 </section>
 
-        {/* E — How it works */}
+        {/* E Ã¢â‚¬â€ How it works */}
         <section className="bg-landing-section bg-landing-how" id="how-it-works" aria-labelledby="bg-how-title">
 
 <div
@@ -600,25 +601,25 @@ useEffect(() => {
           </ol>
         </section>
 
-        {/* F — Human in the loop */}
+        {/* F Ã¢â‚¬â€ Human in the loop */}
         <section className="bg-landing-section bg-landing-human" id="principles" aria-labelledby="bg-human-title">
           <Reveal className="bg-landing-human-copy">
             <h2 id="bg-human-title" className="bg-landing-display">
               AI can recommend.<br />People remain responsible.
             </h2>
             <p className="bg-landing-lede">
-              BrandGuard helps surface potential issues and explain them in context. It doesn’t replace your team’s
+              BrandGuard helps surface potential issues and explain them in context. It doesnÃ¢â‚¬â„¢t replace your teamÃ¢â‚¬â„¢s
               judgment. Every final content decision belongs to the people responsible for your brand.
             </p>
           </Reveal>
           <Reveal delay={120} className="bg-landing-layers" aria-label="AI analysis sits beneath human judgment">
             <div className="bg-landing-layer is-ai">
-              <span>Layer one · AI analysis</span>
-              <p>Flags “guarantees lasting results” as unsupported by the approved facts.</p>
-              <p>Suggests: “helps build consistent habits.”</p>
+              <span>Layer one Ã‚Â· AI analysis</span>
+              <p>Flags Ã¢â‚¬Å“guarantees lasting resultsÃ¢â‚¬Â as unsupported by the approved facts.</p>
+              <p>Suggests: Ã¢â‚¬Å“helps build consistent habits.Ã¢â‚¬Â</p>
             </div>
             <div className="bg-landing-layer is-human">
-              <span>Layer two · Human judgment</span>
+              <span>Layer two Ã‚Â· Human judgment</span>
               <p>Reviewer reads the finding, the reference, and the suggestion.</p>
               <p className="bg-landing-layer-decision">Decision: <strong>Approve with edit</strong></p>
             </div>
@@ -626,7 +627,7 @@ useEffect(() => {
           </Reveal>
         </section>
 
-        {/* G — Insights */}
+        {/* G Ã¢â‚¬â€ Insights */}
         <section className="bg-landing-section" id="insights" aria-labelledby="bg-insights-title">
           <Reveal className="bg-landing-head">
             <h2 id="bg-insights-title" className="bg-landing-display">See the patterns behind every decision.</h2>
@@ -636,14 +637,14 @@ useEffect(() => {
           </Reveal>
         </section>
 
-        {/* H — Final CTA */}
+        {/* H Ã¢â‚¬â€ Final CTA */}
         
 <section className="bg-landing-cta bg-premium-cta" id="start">
   <div className="bg-premium-cta-orb" aria-hidden="true" />
 
   <Reveal className="bg-landing-cta-copy bg-premium-cta-content">
     <div className="bg-premium-cta-eyebrow">
-      <ShieldCheck size={17} aria-hidden="true" />
+      <BrandDNAIcon size={17} aria-hidden="true" />
       THE FUTURE OF BRAND GOVERNANCE
     </div>
 
@@ -670,7 +671,7 @@ useEffect(() => {
       </MagneticButton>
 
       <span className="bg-premium-cta-note">
-        <ShieldCheck size={15} aria-hidden="true" />
+        <BrandDNAIcon size={15} aria-hidden="true" />
         AI-assisted. Human-approved.
       </span>
     </div>
@@ -678,13 +679,13 @@ useEffect(() => {
 
   <div className="bg-premium-cta-bottom" aria-hidden="true">
     <span>UNWIND BRANDGUARD</span>
-    <span>CLARITY · CONSISTENCY · CONTROL</span>
+    <span>CLARITY Ã‚Â· CONSISTENCY Ã‚Â· CONTROL</span>
   </div>
 </section>
 
       </main>
 
-      {/* I — Footer */}
+      {/* I Ã¢â‚¬â€ Footer */}
       <footer className="bg-landing-footer">
         <div className="bg-landing-footer-top">
           <div>
@@ -700,7 +701,7 @@ useEffect(() => {
             <button type="button" onClick={onPrivacy}>Privacy Policy</button>
           </nav>
         </div>
-        <p className="bg-landing-footer-note">© Unwind BrandGuard. Prototype.</p>
+        <p className="bg-landing-footer-note">Ã‚Â© Unwind BrandGuard. Prototype.</p>
       </footer>
     </div>
   )
