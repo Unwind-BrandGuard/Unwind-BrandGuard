@@ -873,7 +873,7 @@ export default function App() {
 
         <footer className="app-footer">
           <span>
-            UNWIND BRANDGUARD <span>·</span> Prototype v0.4
+            UNWIND BRANDGUARD <span>·</span> 
             <span>·</span> AI-assisted, human-controlled governance
           </span>
 
