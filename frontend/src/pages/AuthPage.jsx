@@ -1,7 +1,7 @@
+import BrandDNAIcon from '../components/BrandDNAIcon.jsx'
 
 import { useState } from 'react'
 import {
-  ShieldCheck,
   LockKeyhole,
   Mail,
   ArrowRight
@@ -60,7 +60,7 @@ export default function AuthPage({ onBack }) {
       <div className="auth-card">
         <div className="auth-brand">
           <div className="brand-icon">
-            <ShieldCheck size={25} />
+            <BrandDNAIcon size={25} />
           </div>
           <div>
             <strong>UNWIND</strong>
