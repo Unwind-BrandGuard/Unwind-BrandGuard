@@ -3,6 +3,7 @@ import { ArrowRight, ArrowUpRight, Menu, X, ShieldCheck } from 'lucide-react'
 import '../App.css' 
 import InteractiveBrandCore from "../components/landing/InteractiveBrandCore";// keeps theme variables; landing styles below are fully namespaced
 import './LandingPage.css'
+import BrandReviewDemo from "../components/landing/BrandReviewDemo";
 
 
 const NAV = [
@@ -141,6 +142,72 @@ function MagneticButton({ children, className = '', style, ...props }) {
   )
 }
 
+function TiltCard({ children, className = "", ...props }) {
+  const cardRef = useRef(null);
+  const frameRef = useRef(null);
+
+  const handleMove = (event) => {
+    if (event.pointerType !== "mouse") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const card = cardRef.current;
+    if (!card) return;
+
+    const rect = card.getBoundingClientRect();
+
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+
+    const rotateX = (0.5 - y) * 8;
+    const rotateY = (x - 0.5) * 8;
+
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current);
+    }
+
+    frameRef.current = requestAnimationFrame(() => {
+      card.style.setProperty("--tilt-x", `${rotateX}deg`);
+      card.style.setProperty("--tilt-y", `${rotateY}deg`);
+      card.style.setProperty("--glow-x", `${x * 100}%`);
+      card.style.setProperty("--glow-y", `${y * 100}%`);
+      frameRef.current = null;
+    });
+  };
+
+  const reset = () => {
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+
+    const card = cardRef.current;
+    if (!card) return;
+
+    card.style.setProperty("--tilt-x", "0deg");
+    card.style.setProperty("--tilt-y", "0deg");
+  };
+
+  useEffect(() => {
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <article
+      {...props}
+      ref={cardRef}
+      className={`bg-tilt-card ${className}`}
+      onPointerMove={handleMove}
+      onPointerLeave={reset}
+    >
+      {children}
+    </article>
+  );
+}
+
 function Logo({ onClick }) {
   return (
     <a className="bg-landing-logo" href="#home" onClick={onClick}>
@@ -211,6 +278,42 @@ export default function LandingPage({ onGetStarted, onSignIn, onAbout, onTerms, 
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const rootRef = useRef(null)
+
+const [workflowProgress, setWorkflowProgress] = useState(0)
+
+useEffect(() => {
+  const section = document.getElementById("how-it-works")
+  if (!section) return
+
+  let frame = null
+
+  const updateProgress = () => {
+    if (frame !== null) return
+
+    frame = requestAnimationFrame(() => {
+      const rect = section.getBoundingClientRect()
+      const distance = rect.height + window.innerHeight * 0.6
+      const progress = Math.max(
+        0,
+        Math.min(1, (window.innerHeight * 0.75 - rect.top) / distance)
+      )
+
+      setWorkflowProgress(progress)
+      frame = null
+    })
+  }
+
+  updateProgress()
+  window.addEventListener("scroll", updateProgress, { passive: true })
+  window.addEventListener("resize", updateProgress)
+
+  return () => {
+    window.removeEventListener("scroll", updateProgress)
+    window.removeEventListener("resize", updateProgress)
+    if (frame !== null) cancelAnimationFrame(frame)
+  }
+}, [])
+
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -370,9 +473,9 @@ export default function LandingPage({ onGetStarted, onSignIn, onAbout, onTerms, 
               below: choose a finding to see the guideline behind it.
             </p>
           </Reveal>
-          <Reveal delay={120} className="bg-landing-section-illustration">
-            <img src="/illustrations/content-review.svg" alt="Illustration of AI-assisted content review" loading="lazy" />
-          </Reveal>
+          <Reveal delay={120} className="bg-review-demo-container">
+  <BrandReviewDemo />
+</Reveal>
         </section>
 
        {/* D — Capabilities */}
@@ -433,38 +536,62 @@ export default function LandingPage({ onGetStarted, onSignIn, onAbout, onTerms, 
           "Understand recurring issues, review outcomes, and how consistently your brand is represented.",
         image: "/illustrations/governance-insights.svg",
       },
-    ].map((feature) => (
-      <article className="bg-feature-card" key={feature.number}>
-        <div className="bg-feature-illustration">
-          <img
-            src={feature.image}
-            alt={feature.title}
-            loading="lazy"
-          />
-        </div>
+    ]
+.map((feature) => (
+  <Reveal
+  key={feature.number}
+  delay={Number(feature.number) * 110}
+  className="bg-feature-reveal"
+>
+  <TiltCard className="bg-feature-card">
+    <div className="bg-feature-illustration">
+      <img
+        src={feature.image}
+        alt={feature.title}
+        loading="lazy"
+      />
+    </div>
 
-        <div className="bg-feature-content">
-          <span className="bg-feature-number">
-            {feature.number} / 04
-          </span>
+    <div className="bg-feature-content">
+      <span className="bg-feature-number">
+        {feature.number} / 04
+      </span>
 
-          <h3>{feature.title}</h3>
-          <p>{feature.description}</p>
-        </div>
-      </article>
-    ))}
+      <h3>{feature.title}</h3>
+      <p>{feature.description}</p>
+    </div>
+    </TiltCard>
+</Reveal>
+))}
+
   </div>
 </section>
 
         {/* E — How it works */}
         <section className="bg-landing-section bg-landing-how" id="how-it-works" aria-labelledby="bg-how-title">
+
+<div
+  className="bg-workflow-progress-line"
+  aria-hidden="true"
+  style={{ "--workflow-progress": workflowProgress }}
+/>
+
           <Reveal className="bg-landing-head">
             <p className="bg-landing-eyebrow">From guidelines to confidence</p>
             <h2 id="bg-how-title" className="bg-landing-display">Four steps. One consistent brand.</h2>
           </Reveal>
           <ol className="bg-landing-steps">
             {STEPS.map((s, i) => (
-              <Reveal as="li" key={s.n} delay={i * 110} className="bg-landing-step">
+             
+<Reveal
+  as="li"
+  key={s.n}
+  delay={i * 110}
+  className={`bg-landing-step bg-workflow-step ${
+    workflowProgress >= (i + 0.5) / 4 ? "is-active" : ""
+  }`}
+>
+
                 <span className="bg-landing-step-n" aria-hidden="true">{s.n}</span>
                 <h3>{s.title}</h3>
                 <p>{s.text}</p>
@@ -510,23 +637,51 @@ export default function LandingPage({ onGetStarted, onSignIn, onAbout, onTerms, 
         </section>
 
         {/* H — Final CTA */}
-        <section className="bg-landing-cta" id="start" aria-labelledby="bg-cta-title">
-          <Reveal className="bg-landing-cta-copy">
-            <h2 id="bg-cta-title" className="bg-landing-display">
-              Your brand has a voice.<br />Keep it unmistakable.
-            </h2>
-            <p className="bg-landing-lede">
-              Build a more consistent, accountable content workflow with Unwind BrandGuard.
-            </p>
-            <MagneticButton
-  type="button"
-  className="bg-landing-btn"
-  onClick={onGetStarted}
->
-  Create your workspace <ArrowRight size={17} aria-hidden="true" />
-</MagneticButton>
-          </Reveal>
-        </section>
+        
+<section className="bg-landing-cta bg-premium-cta" id="start">
+  <div className="bg-premium-cta-orb" aria-hidden="true" />
+
+  <Reveal className="bg-landing-cta-copy bg-premium-cta-content">
+    <div className="bg-premium-cta-eyebrow">
+      <ShieldCheck size={17} aria-hidden="true" />
+      THE FUTURE OF BRAND GOVERNANCE
+    </div>
+
+    <h2 className="bg-landing-display">
+      Your brand has a voice.
+      <br />
+      <em>Keep it unmistakable.</em>
+    </h2>
+
+    <p className="bg-landing-lede">
+      Bring your guidelines, AI-assisted content reviews,
+      and human decisions into one intelligent workspace.
+      Build brand consistency with confidence.
+    </p>
+
+    <div className="bg-premium-cta-actions">
+      <MagneticButton
+        type="button"
+        className="bg-landing-btn bg-premium-cta-button"
+        onClick={onGetStarted}
+      >
+        Create your workspace
+        <ArrowRight size={18} aria-hidden="true" />
+      </MagneticButton>
+
+      <span className="bg-premium-cta-note">
+        <ShieldCheck size={15} aria-hidden="true" />
+        AI-assisted. Human-approved.
+      </span>
+    </div>
+  </Reveal>
+
+  <div className="bg-premium-cta-bottom" aria-hidden="true">
+    <span>UNWIND BRANDGUARD</span>
+    <span>CLARITY · CONSISTENCY · CONTROL</span>
+  </div>
+</section>
+
       </main>
 
       {/* I — Footer */}
