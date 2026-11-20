@@ -1659,3 +1659,25 @@
 .bg-feature-reveal .bg-feature-card {
   height: 100%;
 }
+
+.bg-landing-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border: 1px solid var(--border, rgba(120, 140, 125, 0.25));
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.bg-landing-theme-toggle:hover {
+  transform: translateY(-1px);
+  background: rgba(120, 140, 125, 0.1);
+}
