@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react'
 import {
   ShieldCheck,
@@ -11,7 +12,10 @@ import {
   Users,
   X,
   AlertTriangle,
-  CircleHelp
+  CircleHelp,
+  Moon,
+  Sun,
+  ArrowUpRight
 } from 'lucide-react'
 
 import GuidedTour from './components/GuidedTour'
@@ -76,8 +80,37 @@ export default function App() {
   const [savingInvitationName, setSavingInvitationName] = useState(false)
   const [invitationNameError, setInvitationNameError] = useState('')
 
+  // Navigation and landing page
   const [active, setActive] = useState('Overview')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showLanding, setShowLanding] = useState(false)
+
+  // Theme management
+  const [theme, setTheme] = useState(() => {
+    try {
+      const savedTheme = localStorage.getItem('brandguard-theme')
+
+      return savedTheme === 'dark' || savedTheme === 'light'
+        ? savedTheme
+        : 'light'
+    } catch {
+      return 'light'
+    }
+  })
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+
+    try {
+      localStorage.setItem('brandguard-theme', theme)
+    } catch {
+      // Theme still works when browser storage is unavailable.
+    }
+  }, [theme])
+
+  function toggleTheme() {
+    setTheme(current => current === 'light' ? 'dark' : 'light')
+  }
 
   const workspaceRequests = useRef(new Map())
 
@@ -505,6 +538,33 @@ export default function App() {
   // PUBLIC LANDING PAGE AND AUTHENTICATION
   // -----------------------------------------
 
+  if (showLanding && session) {
+    return (
+      <LandingPage
+        onGetStarted={() => {
+          setShowLanding(false)
+          setActive('Overview')
+        }}
+        onSignIn={() => {
+          setShowLanding(false)
+          setActive('Overview')
+        }}
+        onAbout={() => {
+          setShowLanding(false)
+          openAboutPage()
+        }}
+        onTerms={() => {
+          setShowLanding(false)
+          setLegalPage('terms')
+        }}
+        onPrivacy={() => {
+          setShowLanding(false)
+          setLegalPage('privacy')
+        }}
+      />
+    )
+  }
+
   if (!session) {
     if (!authOpen) {
       return (
@@ -627,18 +687,29 @@ export default function App() {
 
       <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="brand">
-          <div className="brand-icon">
-            <img
-              src="/brandguard-logo.png"
-              alt="Unwind BrandGuard"
-              className="brand-logo"
-            />
-          </div>
+          <button
+            type="button"
+            className="brand-home-button"
+            onClick={() => {
+              setShowLanding(true)
+              setMenuOpen(false)
+            }}
+            title="Visit BrandGuard homepage"
+            aria-label="Go to BrandGuard landing page"
+          >
+            <div className="brand-icon">
+              <img
+                src="/brandguard-logo.png"
+                alt=""
+                className="brand-logo"
+              />
+            </div>
 
-          <div>
-            <strong>UNWIND</strong>
-            <span>BRANDGUARD</span>
-          </div>
+            <div className="brand-home-text">
+              <strong>UNWIND</strong>
+              <span>BRANDGUARD</span>
+            </div>
+          </button>
 
           <button
             className="mobile-close"
@@ -679,11 +750,24 @@ export default function App() {
         </nav>
 
         <div className="sidebar-bottom">
-          <div className="protection-card">
-            <ShieldCheck size={20} />
-            <strong>Governance workspace</strong>
-            <span>Human-controlled content review.</span>
-          </div>
+          <button
+            type="button"
+            className="sidebar-tour-button"
+            onClick={() => {
+              setActive('Overview')
+              setMenuOpen(false)
+              setTourRestart(value => value + 1)
+            }}
+          >
+            <CircleHelp size={19} />
+
+            <span className="sidebar-tour-copy">
+              <strong>Take a Tour</strong>
+              <small>Explore BrandGuard</small>
+            </span>
+
+            <ArrowUpRight size={17} />
+          </button>
 
           <div className="profile">
             <div className="avatar">
@@ -744,9 +828,22 @@ export default function App() {
             <span>Take a Tour</span>
           </button>
 
-          <div className="top-status">
-            <span className="status-dot" />
-            Authenticated workspace
+          <div className="topbar-right">
+            <div className="top-status">
+              <span className="status-dot" />
+              Authenticated workspace
+            </div>
+
+            <button
+              type="button"
+              className="theme-toggle"
+              onClick={toggleTheme}
+              aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            >
+              {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
+              <span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
+            </button>
           </div>
         </header>
 
