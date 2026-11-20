@@ -217,7 +217,7 @@ export default function PrivacyPolicyPage({ onBack }) {
       </article>
 
       <footer className="privacy-footer">
-        UNWIND BRANDGUARD Ã‚Â· PRIVACY AND DATA HANDLING
+        UNWIND BRANDGUARD · PRIVACY AND DATA HANDLING
       </footer>
     </main>
   )
