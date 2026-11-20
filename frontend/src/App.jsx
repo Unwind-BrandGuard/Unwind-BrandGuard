@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react'
 import {
   ShieldCheck,
@@ -11,10 +10,11 @@ import {
   Menu,
   Users,
   X,
-  AlertTriangle
+  AlertTriangle,
+  CircleHelp
 } from 'lucide-react'
+
 import GuidedTour from './components/GuidedTour'
-import { CircleHelp } from 'lucide-react'
 import { supabase } from './supabase'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
@@ -45,8 +45,9 @@ const navigation = [
 export default function App() {
   const [session, setSession] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
+
   const [tourRestart, setTourRestart] = useState(0)
-const [tourRunning, setTourRunning] = useState(false)
+  const [tourRunning, setTourRunning] = useState(false)
 
   const [invitationToken, setInvitationToken] = useState(
     () => new URLSearchParams(window.location.search).get('token') || ''
@@ -68,6 +69,12 @@ const [tourRunning, setTourRunning] = useState(false)
   const [workspaceLoading, setWorkspaceLoading] = useState(false)
   const [workspaceRetry, setWorkspaceRetry] = useState(0)
   const [workspaceError, setWorkspaceError] = useState('')
+
+  // Invitation profile details
+  const [needsInvitationName, setNeedsInvitationName] = useState(false)
+  const [invitationName, setInvitationName] = useState('')
+  const [savingInvitationName, setSavingInvitationName] = useState(false)
+  const [invitationNameError, setInvitationNameError] = useState('')
 
   const [active, setActive] = useState('Overview')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -95,7 +102,6 @@ const [tourRunning, setTourRunning] = useState(false)
     setAuthOpen(true)
   }
 
-  // Handle browser back and forward navigation
   useEffect(() => {
     function handlePopState() {
       setPublicPage(
@@ -143,17 +149,80 @@ const [tourRunning, setTourRunning] = useState(false)
   }, [])
 
   // -----------------------------------------
-  // WORKSPACE LOADING
+  // GUIDED TOUR RESPONSIVENESS
   // -----------------------------------------
-useEffect(() => {
-  if (!tourRunning) return
 
-  if (window.matchMedia('(max-width: 768px)').matches) {
-    setMenuOpen(true)
+  useEffect(() => {
+    if (!tourRunning) return
+
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      setMenuOpen(true)
+    }
+
+    return () => setMenuOpen(false)
+  }, [tourRunning])
+
+  // -----------------------------------------
+  // SAVE INVITED USER'S NAME
+  // -----------------------------------------
+
+  async function saveInvitationName(event) {
+    event.preventDefault()
+
+    const cleanName = invitationName.trim()
+
+    if (!cleanName) {
+      setInvitationNameError('Please enter your full name.')
+      return
+    }
+
+    if (cleanName.length < 2) {
+      setInvitationNameError('Your name must contain at least 2 characters.')
+      return
+    }
+
+    setSavingInvitationName(true)
+    setInvitationNameError('')
+
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: {
+          full_name: cleanName,
+          fullName: cleanName,
+          name: cleanName
+        }
+      })
+
+      if (error) throw error
+
+      if (!data?.user) {
+        throw new Error('Could not update your account details. Please try again.')
+      }
+
+      setNeedsInvitationName(false)
+      setInvitationName('')
+      setWorkspaceError('')
+      setWorkspace(null)
+      setRole(null)
+
+      workspaceRequests.current.delete(data.user.id)
+
+      setWorkspaceRetry(value => value + 1)
+    } catch (error) {
+      console.error('Invitation profile update failed:', error)
+
+      setInvitationNameError(
+        error.message || 'Unable to save your name. Please try again.'
+      )
+    } finally {
+      setSavingInvitationName(false)
+    }
   }
 
-  return () => setMenuOpen(false)
-}, [tourRunning])
+  // -----------------------------------------
+  // WORKSPACE LOADING
+  // -----------------------------------------
+
   useEffect(() => {
     const user = session?.user
 
@@ -162,6 +231,7 @@ useEffect(() => {
       setRole(null)
       setWorkspaceError('')
       setWorkspaceLoading(false)
+      setNeedsInvitationName(false)
       return
     }
 
@@ -177,7 +247,8 @@ useEffect(() => {
 
         if (authError) throw authError
 
-        const authenticatedUserId = authData.user?.id
+        const authenticatedUser = authData.user
+        const authenticatedUserId = authenticatedUser?.id
 
         if (!authenticatedUserId || authenticatedUserId !== user.id) {
           throw new Error(
@@ -185,8 +256,34 @@ useEffect(() => {
           )
         }
 
-        // Accept workspace invitation if token exists
+        // -----------------------------------------
+        // ACCEPT WORKSPACE INVITATION
+        // -----------------------------------------
+
         if (invitationToken) {
+          const metadata = authenticatedUser.user_metadata || {}
+
+          const existingName =
+            metadata.full_name?.trim() ||
+            metadata.fullName?.trim() ||
+            metadata.name?.trim() ||
+            ''
+
+          // Ask invited users for their name if missing.
+          // Do not accept the invitation until the name is saved.
+          if (!existingName) {
+            if (!cancelled) {
+              setNeedsInvitationName(true)
+              setInvitationNameError('')
+            }
+
+            return
+          }
+
+          if (!cancelled) {
+            setNeedsInvitationName(false)
+          }
+
           const { data: sessionData, error: sessionError } =
             await supabase.auth.getSession()
 
@@ -246,10 +343,15 @@ useEffect(() => {
           )
 
           setInvitationToken('')
+          setNeedsInvitationName(false)
+
           return
         }
 
-        // Check existing workspace membership
+        // -----------------------------------------
+        // CHECK EXISTING WORKSPACE MEMBERSHIP
+        // -----------------------------------------
+
         let request = workspaceRequests.current.get(user.id)
 
         if (!request) {
@@ -322,7 +424,9 @@ useEffect(() => {
           )
         }
       } finally {
-        if (!cancelled) setWorkspaceLoading(false)
+        if (!cancelled) {
+          setWorkspaceLoading(false)
+        }
       }
     }
 
@@ -339,9 +443,13 @@ useEffect(() => {
 
   async function handleLogout() {
     workspaceRequests.current.clear()
+
     setWorkspace(null)
     setRole(null)
     setActive('Overview')
+    setNeedsInvitationName(false)
+    setInvitationName('')
+    setInvitationNameError('')
 
     await supabase.auth.signOut()
   }
@@ -444,6 +552,12 @@ useEffect(() => {
 
   const email = session.user.email || 'Workspace member'
 
+  const displayName =
+    session.user.user_metadata?.full_name?.trim() ||
+    session.user.user_metadata?.fullName?.trim() ||
+    session.user.user_metadata?.name?.trim() ||
+    email
+
   function renderPage() {
     switch (active) {
       case 'Overview':
@@ -503,13 +617,14 @@ useEffect(() => {
   return (
     <div className="app-shell">
       {workspace && !workspaceLoading && !workspaceError && (
-  <GuidedTour
-    userId={session.user.id}
-    workspaceId={workspace.id}
-    restartSignal={tourRestart}
-    onRunningChange={setTourRunning}
-  />
-)}
+        <GuidedTour
+          userId={session.user.id}
+          workspaceId={workspace.id}
+          restartSignal={tourRestart}
+          onRunningChange={setTourRunning}
+        />
+      )}
+
       <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="brand">
           <div className="brand-icon">
@@ -544,13 +659,13 @@ useEffect(() => {
             <button
               key={item.name}
               data-tour={{
-  'Overview': 'overview',
-  'Brand Guidelines': 'guidelines',
-  'Content Reviews': 'reviews',
-  'Insights': 'insights',
-  'Team Members': 'members',
-  'Settings': 'settings'
-}[item.name]}
+                'Overview': 'overview',
+                'Brand Guidelines': 'guidelines',
+                'Content Reviews': 'reviews',
+                'Insights': 'insights',
+                'Team Members': 'members',
+                'Settings': 'settings'
+              }[item.name]}
               className={`nav-item ${active === item.name ? 'selected' : ''}`}
               onClick={() => {
                 setActive(item.name)
@@ -572,7 +687,7 @@ useEffect(() => {
 
           <div className="profile">
             <div className="avatar">
-              {email.charAt(0).toUpperCase()}
+              {displayName.charAt(0).toUpperCase()}
             </div>
 
             <div className="profile-details">
@@ -582,7 +697,7 @@ useEffect(() => {
                   : 'Workspace member'}
               </strong>
 
-              <span>{email}</span>
+              <span>{displayName}</span>
             </div>
 
             <button
@@ -615,18 +730,20 @@ useEffect(() => {
           <div className="breadcrumb">
             BrandGuard <span>/</span> {active}
           </div>
-<button
-  type="button"
-  className="tour-help-button"
-  onClick={() => {
-    setActive('Overview')
-    setTourRestart(value => value + 1)
-  }}
-  title="Take a tour of BrandGuard"
->
-  <CircleHelp size={17} />
-  <span>Take a Tour</span>
-</button>
+
+          <button
+            type="button"
+            className="tour-help-button"
+            onClick={() => {
+              setActive('Overview')
+              setTourRestart(value => value + 1)
+            }}
+            title="Take a tour of BrandGuard"
+          >
+            <CircleHelp size={17} />
+            <span>Take a Tour</span>
+          </button>
+
           <div className="top-status">
             <span className="status-dot" />
             Authenticated workspace
@@ -639,6 +756,83 @@ useEffect(() => {
               {invitationToken
                 ? 'Validating your workspace invitation...'
                 : 'Setting up your workspace...'}
+            </div>
+          ) : needsInvitationName ? (
+            <div className="content-panel">
+              <div style={{
+                maxWidth: '460px',
+                margin: '40px auto',
+                textAlign: 'center'
+              }}>
+                <div style={{ marginBottom: '18px' }}>
+                  <ShieldCheck size={38} />
+                </div>
+
+                <h2>Complete Your Profile</h2>
+
+                <p>
+                  Before joining this workspace, please enter your full name.
+                  It will be displayed in review comments and team activity.
+                </p>
+
+                <form
+                  onSubmit={saveInvitationName}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px',
+                    marginTop: '24px',
+                    textAlign: 'left'
+                  }}
+                >
+                  <label htmlFor="invitation-full-name">
+                    Full Name
+                  </label>
+
+                  <input
+                    id="invitation-full-name"
+                    type="text"
+                    value={invitationName}
+                    onChange={event => {
+                      setInvitationName(event.target.value)
+                      setInvitationNameError('')
+                    }}
+                    placeholder="Enter your full name"
+                    autoComplete="name"
+                    required
+                    minLength={2}
+                    maxLength={100}
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border-color, #333)',
+                      background: 'var(--input-background, transparent)',
+                      color: 'inherit',
+                      font: 'inherit'
+                    }}
+                  />
+
+                  {invitationNameError && (
+                    <p
+                      role="alert"
+                      style={{ color: '#e57373', margin: 0 }}
+                    >
+                      {invitationNameError}
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    className="secondary-button"
+                    disabled={savingInvitationName}
+                  >
+                    {savingInvitationName
+                      ? 'Saving your details...'
+                      : 'Save Name and Accept Invitation'}
+                  </button>
+                </form>
+              </div>
             </div>
           ) : workspaceError ? (
             <div className="content-panel error-panel">
