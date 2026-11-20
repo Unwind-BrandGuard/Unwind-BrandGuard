@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState , moon , sun} from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowRight, ArrowUpRight, Menu, X,
-  ShieldCheck,
+  ShieldCheck, Moon , Sun
 } from 'lucide-react'
 import '../App.css' 
 import InteractiveBrandCore from "../components/landing/InteractiveBrandCore";// keeps theme variables; landing styles below are fully namespaced
