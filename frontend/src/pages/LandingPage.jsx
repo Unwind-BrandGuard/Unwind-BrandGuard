@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState , moon , sun} from 'react'
 import { ArrowRight, ArrowUpRight, Menu, X,
   ShieldCheck,
 } from 'lucide-react'
@@ -276,7 +276,15 @@ function DriftVisual() {
   )
 }
 
-export default function LandingPage({ onGetStarted, onSignIn, onAbout, onTerms, onPrivacy }) {
+export default function LandingPage({
+  onGetStarted,
+  onSignIn,
+  onAbout,
+  onTerms,
+  onPrivacy,
+  theme,
+  onToggleTheme
+}) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const rootRef = useRef(null)
@@ -360,6 +368,16 @@ useEffect(() => {
             <button type="button" onClick={act(onAbout)}>About us</button>
           </nav>
           <div className="bg-landing-nav-actions">
+            <button
+  type="button"
+  className="bg-landing-theme-toggle"
+  onClick={onToggleTheme}
+  aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+  title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+>
+  {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+  <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+</button>
             <button type="button" className="bg-landing-btn-text" onClick={act(onSignIn)}>Sign in</button>
             <MagneticButton
   type="button"
@@ -702,7 +720,7 @@ useEffect(() => {
             <button type="button" onClick={onPrivacy}>Privacy Policy</button>
           </nav>
         </div>
-        <p className="bg-landing-footer-note">© Unwind BrandGuard. Prototype.</p>
+        <p className="bg-landing-footer-note">© Unwind BrandGuard. </p>
       </footer>
     </div>
   )
