@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import {
-  ShieldCheck, LockKeyhole, Mail, ArrowRight,
+  LockKeyhole, Mail, ArrowRight,
   UserRound, Building2, Eye, EyeOff
 } from 'lucide-react'
 import { supabase } from '../supabase'
