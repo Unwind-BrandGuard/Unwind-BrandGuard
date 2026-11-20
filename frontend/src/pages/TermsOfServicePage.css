@@ -174,3 +174,93 @@
     line-height: 1.8;
   }
 }
+
+/* PREMIUM TERMS OF SERVICE */
+
+.legal-page {
+  background: var(--bg);
+  color: var(--text);
+  transition: background-color .26s ease, color .26s ease;
+}
+
+.legal-header,
+.legal-footer {
+  border-color: var(--border);
+}
+
+.legal-back-button {
+  color: var(--text);
+  background: var(--panel);
+  border-color: var(--border);
+  border-radius: 10px;
+}
+
+.legal-back-button:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  transform: translateX(-2px);
+}
+
+.legal-brand,
+.legal-eyebrow,
+.legal-document section li::marker {
+  color: var(--accent);
+}
+
+.legal-brand strong {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--text);
+  font-size: 17px;
+  letter-spacing: -.02em;
+}
+
+.legal-brand small,
+.legal-updated,
+.legal-footer {
+  color: var(--muted);
+}
+
+.legal-document h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--text);
+  font-weight: 500;
+  font-size: clamp(38px, 5vw, 58px);
+  letter-spacing: -.04em;
+  line-height: 1.2;
+}
+
+.legal-intro {
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.legal-document section h2 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -.02em;
+}
+
+.legal-document section p,
+.legal-document section li {
+  color: var(--muted);
+  line-height: 1.9;
+}
+
+@media (max-width: 600px) {
+  .legal-document section h2 {
+    font-size: 21px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .legal-back-button:hover {
+    transform: none;
+  }
+}
