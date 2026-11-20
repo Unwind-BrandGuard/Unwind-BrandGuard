@@ -1,7 +1,7 @@
+import BrandDNAIcon from './components/BrandDNAIcon.jsx'
 
 import { useEffect, useRef, useState } from 'react'
 import {
-  ShieldCheck,
   LayoutDashboard,
   BookOpen,
   FileSearch,
@@ -406,7 +406,7 @@ export default function App() {
   if (authLoading) {
     return (
       <div className="loading-screen">
-        <ShieldCheck size={30} />
+        <BrandDNAIcon size={30} />
         <span>Preparing BrandGuard...</span>
       </div>
     )
@@ -774,7 +774,7 @@ export default function App() {
                 textAlign: 'center'
               }}>
                 <div style={{ marginBottom: '18px' }}>
-                  <ShieldCheck size={38} />
+                  <BrandDNAIcon size={38} />
                 </div>
 
                 <h2>Complete Your Profile</h2>
@@ -884,8 +884,8 @@ export default function App() {
 
         <footer className="app-footer">
           <span>
-            UNWIND BRANDGUARD <span>·</span> Prototype v0.4
-            <span>·</span> AI-assisted, human-controlled governance
+            UNWIND BRANDGUARD <span>Ã‚Â·</span> Prototype v0.4
+            <span>Ã‚Â·</span> AI-assisted, human-controlled governance
           </span>
 
           <div className="app-legal-links">

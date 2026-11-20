@@ -1,5 +1,5 @@
 
-import { ArrowLeft, ShieldCheck } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import './PrivacyPolicyPage.css'
 
 export default function PrivacyPolicyPage({ onBack }) {
@@ -217,7 +217,7 @@ export default function PrivacyPolicyPage({ onBack }) {
       </article>
 
       <footer className="privacy-footer">
-        UNWIND BRANDGUARD · PRIVACY AND DATA HANDLING
+        UNWIND BRANDGUARD Ã‚Â· PRIVACY AND DATA HANDLING
       </footer>
     </main>
   )

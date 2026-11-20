@@ -1,0 +1,70 @@
+
+.brand-dna {
+  width: 170px;
+  height: 170px;
+  flex-shrink: 0;
+  perspective: 600px;
+}
+
+.brand-dna svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: dna-float 5s ease-in-out infinite;
+  transition: transform .5s cubic-bezier(.22,1,.36,1);
+}
+
+.brand-dna:hover svg {
+  transform: rotateY(16deg) rotateX(-12deg) scale(1.08);
+  animation-play-state: paused;
+}
+
+.dna-orbits {
+  transform-origin: 90px 86px;
+  animation: dna-rotate 18s linear infinite;
+}
+
+.dna-crystal {
+  transform-origin: 90px 87px;
+  animation: dna-breathe 4s ease-in-out infinite;
+}
+
+.dna-node {
+  animation: dna-pulse 2.5s ease-in-out infinite alternate;
+}
+
+.dna-node-two { animation-delay: .6s; }
+.dna-node-three { animation-delay: 1.2s; }
+
+@keyframes dna-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -9px; }
+}
+
+@keyframes dna-rotate {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes dna-breathe {
+  50% { transform: scale(1.045); }
+}
+
+@keyframes dna-pulse {
+  to { opacity: .45; }
+}
+
+@media (max-width: 640px) {
+  .brand-dna {
+    width: 110px;
+    height: 110px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-dna svg,
+  .dna-orbits,
+  .dna-crystal,
+  .dna-node {
+    animation: none;
+  }
+}

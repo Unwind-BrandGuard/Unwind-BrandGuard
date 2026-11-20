@@ -1,6 +1,6 @@
+import BrandDNAIcon from '../components/BrandDNAIcon.jsx'
 
 import {
-  ShieldCheck,
   BookOpen,
   FileSearch,
   CheckCircle2,
@@ -57,7 +57,7 @@ export default function OverviewPage({ workspace, setActive }) {
         </div>
 
         <div className="welcome-icon">
-          <ShieldCheck size={65} />
+          <BrandDNAIcon size={65} />
         </div>
       </section>
 
@@ -65,7 +65,7 @@ export default function OverviewPage({ workspace, setActive }) {
         <Stat
           icon={BookOpen}
           label="Brand guidelines"
-          value="—"
+          value="Ã¢â‚¬â€"
           note="Standards configured"
         />
 
@@ -151,7 +151,7 @@ export default function OverviewPage({ workspace, setActive }) {
           </p>
 
           <div className="insight-tag">
-            <ShieldCheck size={14} /> Human-controlled governance
+            <BrandDNAIcon size={14} /> Human-controlled governance
           </div>
         </div>
       </section>

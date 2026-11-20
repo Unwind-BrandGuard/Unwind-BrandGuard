@@ -1,8 +1,8 @@
+import BrandDNAIcon from '../components/BrandDNAIcon.jsx'
 import { useEffect } from 'react'
 import {
   ArrowLeft,
   ArrowUpRight,
-  ShieldCheck,
   Code2,
   ClipboardList,
   FileSearch,
@@ -205,7 +205,7 @@ export default function AboutPage({
         </p>
 
         <div className="about-hero-note">
-          <ShieldCheck size={19} aria-hidden="true" />
+          <BrandDNAIcon size={19} aria-hidden="true" />
           <span>AI-assisted. Human-controlled.</span>
         </div>
       </section>

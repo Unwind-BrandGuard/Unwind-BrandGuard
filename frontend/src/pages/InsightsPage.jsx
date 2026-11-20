@@ -1,3 +1,4 @@
+import BrandDNAIcon from '../components/BrandDNAIcon.jsx'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Activity,
@@ -6,8 +7,7 @@ import {
   Clock3,
   FileSearch,
   RefreshCw,
-  ShieldCheck,
-} from 'lucide-react'
+  } from 'lucide-react'
 import {
   Area,
   AreaChart,
@@ -273,7 +273,7 @@ const workspaceId = workspace?.id
     return days
   }, [filteredReviews, dateRange])
 
- // Donut chart — theme-aware and immutable
+ // Donut chart Ã¢â‚¬â€ theme-aware and immutable
 const outcomeData = useMemo(() => {
   const items = [
     {
@@ -419,10 +419,10 @@ const outcomeData = useMemo(() => {
           <span>Approval rate</span>
 
           <div>
-            <ShieldCheck size={20} />
+            <BrandDNAIcon size={20} />
             <strong>
               {stats.approvalRate === null
-                ? '—'
+                ? 'Ã¢â‚¬â€'
                 : `${stats.approvalRate}%`}
             </strong>
           </div>
@@ -521,7 +521,7 @@ const outcomeData = useMemo(() => {
                 />
 
                 <Tooltip
-                  contentStyle={TOOLTIP_STYLE}
+                  contentStyle={tooltipStyle}
                   cursor={{ stroke: '#36564d' }}
                 />
 
@@ -555,7 +555,7 @@ activeDot={{
               <p>Status distribution for this period</p>
             </div>
 
-            <ShieldCheck size={20} />
+            <BrandDNAIcon size={20} />
           </div>
 
           {outcomeData.length === 0 ? (
@@ -668,12 +668,12 @@ activeDot={{
                     tick={{ fontSize: 11 }}
                     tickFormatter={(value) =>
                       value.length > 16
-                        ? `${value.slice(0, 15)}…`
+                        ? `${value.slice(0, 15)}Ã¢â‚¬Â¦`
                         : value
                     }
                   />
 
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Tooltip contentStyle={tooltipStyle} />
 
                   <Bar
                     dataKey="count"
