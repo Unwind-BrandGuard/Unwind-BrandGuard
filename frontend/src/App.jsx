@@ -451,9 +451,11 @@ export default function App() {
   // -----------------------------------------
 
   if (showLanding && session) {
-    return (
-      <LandingPage
-        onGetStarted={() => {
+  return (
+    <LandingPage
+      theme={theme}
+      onToggleTheme={toggleTheme}
+      onGetStarted={() => {
           setShowLanding(false)
           setActive('Overview')
         }}
@@ -477,11 +479,13 @@ export default function App() {
     )
   }
 
-  if (!session) {
-    if (!authOpen) {
-      return (
-        <LandingPage
-          onGetStarted={() => {
+ if (!session) {
+  if (!authOpen) {
+    return (
+      <LandingPage
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onGetStarted={() => {
             setAuthPage('signup')
             setAuthOpen(true)
           }}
@@ -735,16 +739,19 @@ export default function App() {
               Authenticated workspace
             </div>
 
-            <button
-              type="button"
-              className="theme-toggle"
-              onClick={toggleTheme}
-              aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-              title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-            >
-              {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
-              <span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
-            </button>
+           <button
+  type="button"
+  className="theme-toggle"
+  onClick={() => {
+    console.log('THEME BUTTON CLICKED')
+    toggleTheme()
+  }}
+  aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+  title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+>
+  {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
+  <span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
+</button>
           </div>
         </header>
 
