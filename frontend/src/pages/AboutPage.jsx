@@ -1,4 +1,3 @@
-import BrandDNAIcon from '../components/BrandDNAIcon.jsx'
 import { useEffect } from 'react'
 import {
   ArrowLeft,
@@ -10,7 +9,8 @@ import {
   UserCheck,
   Eye,
   BookOpen,
-  Repeat
+  Repeat,
+  ShieldCheck,
 } from 'lucide-react'
 
 import '../App.css'
@@ -205,7 +205,7 @@ export default function AboutPage({
         </p>
 
         <div className="about-hero-note">
-          <BrandDNAIcon size={19} aria-hidden="true" />
+          <ShieldCheck size={19} aria-hidden="true" />
           <span>AI-assisted. Human-controlled.</span>
         </div>
       </section>

@@ -6,7 +6,8 @@ import {
   CheckCircle2,
   Activity,
   ArrowRight,
-  LockKeyhole
+  LockKeyhole,
+  ShieldCheck
 } from 'lucide-react'
 
 function Stat({ icon: Icon, label, value, note }) {
@@ -57,17 +58,17 @@ export default function OverviewPage({ workspace, setActive }) {
         </div>
 
         <div className="welcome-icon">
-          <BrandDNAIcon size={65} />
-        </div>
+  <BrandDNAIcon size={170} />
+</div>
       </section>
 
       <section className="stats-grid">
-        <Stat
-          icon={BookOpen}
-          label="Brand guidelines"
-          value="Ã¢â‚¬â€"
-          note="Standards configured"
-        />
+       <Stat
+  icon={BookOpen}
+  label="Brand guidelines"
+  value="—"
+  note="Standards configured"
+/>
 
         <Stat
           icon={FileSearch}
@@ -150,9 +151,9 @@ export default function OverviewPage({ workspace, setActive }) {
             Final content approval always remains with an authorised human reviewer.
           </p>
 
-          <div className="insight-tag">
-            <BrandDNAIcon size={14} /> Human-controlled governance
-          </div>
+         <div className="insight-tag">
+  <ShieldCheck size={14} /> Human-controlled governance
+</div>
         </div>
       </section>
     </>

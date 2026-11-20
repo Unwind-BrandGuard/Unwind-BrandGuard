@@ -1,10 +1,10 @@
-import BrandDNAIcon from '../components/BrandDNAIcon.jsx'
 
 import { useState } from 'react'
 import {
   LockKeyhole,
   Mail,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck,
 } from 'lucide-react'
 import { supabase } from '../supabase'
 
@@ -60,7 +60,7 @@ export default function AuthPage({ onBack }) {
       <div className="auth-card">
         <div className="auth-brand">
           <div className="brand-icon">
-            <BrandDNAIcon size={25} />
+            <ShieldCheck size={25} />
           </div>
           <div>
             <strong>UNWIND</strong>

@@ -1,7 +1,8 @@
-import BrandDNAIcon from '../components/BrandDNAIcon.jsx'
 
 import { useEffect, useState } from 'react'
-import { Settings, Users, Save } from 'lucide-react'
+import { Settings, Users, Save,
+  ShieldCheck,
+} from 'lucide-react'
 import { supabase } from '../supabase'
 import { useToast } from '../components/feedback/ToastProvider'
 import { getFriendlyError } from '../utils/errorMessages'
@@ -95,7 +96,7 @@ toast.success('Workspace name updated successfully.')
 
         <div className="settings-feature-list">
           <div className="settings-feature-item">
-            <BrandDNAIcon size={16} />
+            <ShieldCheck size={16} />
             <span>
               Workspace: <strong>{workspace?.name || 'Loading...'}</strong>
             </span>
