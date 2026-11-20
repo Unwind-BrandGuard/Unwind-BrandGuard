@@ -11,10 +11,14 @@ import {
   Menu,
   Users,
   X,
-  AlertTriangle
+  AlertTriangle,
+  CircleHelp,
+  Moon,
+  Sun,
+  ArrowUpRight
 } from 'lucide-react'
+
 import GuidedTour from './components/GuidedTour'
-import { CircleHelp, Moon, Sun, ArrowUpRight } from 'lucide-react'
 import { supabase } from './supabase'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
@@ -45,8 +49,9 @@ const navigation = [
 export default function App() {
   const [session, setSession] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
+
   const [tourRestart, setTourRestart] = useState(0)
-const [tourRunning, setTourRunning] = useState(false)
+  const [tourRunning, setTourRunning] = useState(false)
 
   const [invitationToken, setInvitationToken] = useState(
     () => new URLSearchParams(window.location.search).get('token') || ''
@@ -69,35 +74,43 @@ const [tourRunning, setTourRunning] = useState(false)
   const [workspaceRetry, setWorkspaceRetry] = useState(0)
   const [workspaceError, setWorkspaceError] = useState('')
 
-const [active, setActive] = useState('Overview')
-const [menuOpen, setMenuOpen] = useState(false)
-const [showLanding, setShowLanding] = useState(false)
+  // Invitation profile details
+  const [needsInvitationName, setNeedsInvitationName] = useState(false)
+  const [invitationName, setInvitationName] = useState('')
+  const [savingInvitationName, setSavingInvitationName] = useState(false)
+  const [invitationNameError, setInvitationNameError] = useState('')
 
-const [theme, setTheme] = useState(() => {
-  try {
-    const savedTheme = localStorage.getItem('brandguard-theme')
+  // Navigation and landing page
+  const [active, setActive] = useState('Overview')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [showLanding, setShowLanding] = useState(false)
 
-    return savedTheme === 'dark' || savedTheme === 'light'
-      ? savedTheme
-      : 'light'
-  } catch {
-    return 'light'
+  // Theme management
+  const [theme, setTheme] = useState(() => {
+    try {
+      const savedTheme = localStorage.getItem('brandguard-theme')
+
+      return savedTheme === 'dark' || savedTheme === 'light'
+        ? savedTheme
+        : 'light'
+    } catch {
+      return 'light'
+    }
+  })
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+
+    try {
+      localStorage.setItem('brandguard-theme', theme)
+    } catch {
+      // Theme still works when browser storage is unavailable.
+    }
+  }, [theme])
+
+  function toggleTheme() {
+    setTheme(current => current === 'light' ? 'dark' : 'light')
   }
-})
-
-useEffect(() => {
-  document.documentElement.setAttribute('data-theme', theme)
-
-  try {
-    localStorage.setItem('brandguard-theme', theme)
-  } catch {
-    // Theme still works when browser storage is unavailable.
-  }
-}, [theme])
-
-function toggleTheme() {
-  setTheme(current => current === 'light' ? 'dark' : 'light')
-}
 
   const workspaceRequests = useRef(new Map())
 
@@ -122,7 +135,6 @@ function toggleTheme() {
     setAuthOpen(true)
   }
 
-  // Handle browser back and forward navigation
   useEffect(() => {
     function handlePopState() {
       setPublicPage(
@@ -170,17 +182,80 @@ function toggleTheme() {
   }, [])
 
   // -----------------------------------------
-  // WORKSPACE LOADING
+  // GUIDED TOUR RESPONSIVENESS
   // -----------------------------------------
-useEffect(() => {
-  if (!tourRunning) return
 
-  if (window.matchMedia('(max-width: 768px)').matches) {
-    setMenuOpen(true)
+  useEffect(() => {
+    if (!tourRunning) return
+
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      setMenuOpen(true)
+    }
+
+    return () => setMenuOpen(false)
+  }, [tourRunning])
+
+  // -----------------------------------------
+  // SAVE INVITED USER'S NAME
+  // -----------------------------------------
+
+  async function saveInvitationName(event) {
+    event.preventDefault()
+
+    const cleanName = invitationName.trim()
+
+    if (!cleanName) {
+      setInvitationNameError('Please enter your full name.')
+      return
+    }
+
+    if (cleanName.length < 2) {
+      setInvitationNameError('Your name must contain at least 2 characters.')
+      return
+    }
+
+    setSavingInvitationName(true)
+    setInvitationNameError('')
+
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: {
+          full_name: cleanName,
+          fullName: cleanName,
+          name: cleanName
+        }
+      })
+
+      if (error) throw error
+
+      if (!data?.user) {
+        throw new Error('Could not update your account details. Please try again.')
+      }
+
+      setNeedsInvitationName(false)
+      setInvitationName('')
+      setWorkspaceError('')
+      setWorkspace(null)
+      setRole(null)
+
+      workspaceRequests.current.delete(data.user.id)
+
+      setWorkspaceRetry(value => value + 1)
+    } catch (error) {
+      console.error('Invitation profile update failed:', error)
+
+      setInvitationNameError(
+        error.message || 'Unable to save your name. Please try again.'
+      )
+    } finally {
+      setSavingInvitationName(false)
+    }
   }
 
-  return () => setMenuOpen(false)
-}, [tourRunning])
+  // -----------------------------------------
+  // WORKSPACE LOADING
+  // -----------------------------------------
+
   useEffect(() => {
     const user = session?.user
 
@@ -189,6 +264,7 @@ useEffect(() => {
       setRole(null)
       setWorkspaceError('')
       setWorkspaceLoading(false)
+      setNeedsInvitationName(false)
       return
     }
 
@@ -204,7 +280,8 @@ useEffect(() => {
 
         if (authError) throw authError
 
-        const authenticatedUserId = authData.user?.id
+        const authenticatedUser = authData.user
+        const authenticatedUserId = authenticatedUser?.id
 
         if (!authenticatedUserId || authenticatedUserId !== user.id) {
           throw new Error(
@@ -212,71 +289,14 @@ useEffect(() => {
           )
         }
 
-        // Accept workspace invitation if token exists
-        if (invitationToken) {
-          const { data: sessionData, error: sessionError } =
-            await supabase.auth.getSession()
+        // -----------------------------------------
+        // ACCEPT WORKSPACE INVITATION
+        // -----------------------------------------
 
-          if (sessionError) throw sessionError
+        // -----------------------------------------
+        // CHECK EXISTING WORKSPACE MEMBERSHIP
+        // -----------------------------------------
 
-          const accessToken = sessionData.session?.access_token
-
-          if (!accessToken) {
-            throw new Error('Your session has expired. Please sign in again.')
-          }
-
-          const response = await fetch(
-            `${API_BASE_URL}/api/invitations/accept`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${accessToken}`
-              },
-              body: JSON.stringify({ token: invitationToken })
-            }
-          )
-
-          const result = await response.json()
-
-          if (!response.ok) {
-            throw new Error(
-              result.message || 'Unable to accept this workspace invitation.'
-            )
-          }
-
-          if (!result.workspace_id) {
-            throw new Error(
-              'The invitation response did not contain a workspace.'
-            )
-          }
-
-          const { data: invitedWorkspace, error: workspaceError } =
-            await supabase
-              .from('workspaces')
-              .select('*')
-              .eq('id', result.workspace_id)
-              .single()
-
-          if (workspaceError) throw workspaceError
-
-          if (cancelled) return
-
-          setWorkspace(invitedWorkspace)
-          setRole(result.role)
-          setActive('Overview')
-
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.origin
-          )
-
-          setInvitationToken('')
-          return
-        }
-
-        // Check existing workspace membership
         let request = workspaceRequests.current.get(user.id)
 
         if (!request) {
@@ -349,7 +369,9 @@ useEffect(() => {
           )
         }
       } finally {
-        if (!cancelled) setWorkspaceLoading(false)
+        if (!cancelled) {
+          setWorkspaceLoading(false)
+        }
       }
     }
 
@@ -366,9 +388,13 @@ useEffect(() => {
 
   async function handleLogout() {
     workspaceRequests.current.clear()
+
     setWorkspace(null)
     setRole(null)
     setActive('Overview')
+    setNeedsInvitationName(false)
+    setInvitationName('')
+    setInvitationNameError('')
 
     await supabase.auth.signOut()
   }
@@ -423,32 +449,34 @@ useEffect(() => {
   // -----------------------------------------
   // PUBLIC LANDING PAGE AND AUTHENTICATION
   // -----------------------------------------
-if (showLanding && session) {
-  return (
-    <LandingPage
-      onGetStarted={() => {
-        setShowLanding(false)
-        setActive('Overview')
-      }}
-      onSignIn={() => {
-        setShowLanding(false)
-        setActive('Overview')
-      }}
-      onAbout={() => {
-        setShowLanding(false)
-        openAboutPage()
-      }}
-      onTerms={() => {
-        setShowLanding(false)
-        setLegalPage('terms')
-      }}
-      onPrivacy={() => {
-        setShowLanding(false)
-        setLegalPage('privacy')
-      }}
-    />
-  )
-}
+
+  if (showLanding && session) {
+    return (
+      <LandingPage
+        onGetStarted={() => {
+          setShowLanding(false)
+          setActive('Overview')
+        }}
+        onSignIn={() => {
+          setShowLanding(false)
+          setActive('Overview')
+        }}
+        onAbout={() => {
+          setShowLanding(false)
+          openAboutPage()
+        }}
+        onTerms={() => {
+          setShowLanding(false)
+          setLegalPage('terms')
+        }}
+        onPrivacy={() => {
+          setShowLanding(false)
+          setLegalPage('privacy')
+        }}
+      />
+    )
+  }
+
   if (!session) {
     if (!authOpen) {
       return (
@@ -495,6 +523,12 @@ if (showLanding && session) {
   // -----------------------------------------
 
   const email = session.user.email || 'Workspace member'
+
+  const displayName =
+    session.user.user_metadata?.full_name?.trim() ||
+    session.user.user_metadata?.fullName?.trim() ||
+    session.user.user_metadata?.name?.trim() ||
+    email
 
   function renderPage() {
     switch (active) {
@@ -555,38 +589,39 @@ if (showLanding && session) {
   return (
     <div className="app-shell">
       {workspace && !workspaceLoading && !workspaceError && (
-  <GuidedTour
-    userId={session.user.id}
-    workspaceId={workspace.id}
-    restartSignal={tourRestart}
-    onRunningChange={setTourRunning}
-  />
-)}
+        <GuidedTour
+          userId={session.user.id}
+          workspaceId={workspace.id}
+          restartSignal={tourRestart}
+          onRunningChange={setTourRunning}
+        />
+      )}
+
       <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="brand">
-  <button
-    type="button"
-    className="brand-home-button"
-    onClick={() => {
-      setShowLanding(true)
-      setMenuOpen(false)
-    }}
-    title="Visit BrandGuard homepage"
-    aria-label="Go to BrandGuard landing page"
-  >
-    <div className="brand-icon">
-      <img
-        src="/brandguard-logo.png"
-        alt=""
-        className="brand-logo"
-      />
-    </div>
+          <button
+            type="button"
+            className="brand-home-button"
+            onClick={() => {
+              setShowLanding(true)
+              setMenuOpen(false)
+            }}
+            title="Visit BrandGuard homepage"
+            aria-label="Go to BrandGuard landing page"
+          >
+            <div className="brand-icon">
+              <img
+                src="/brandguard-logo.png"
+                alt=""
+                className="brand-logo"
+              />
+            </div>
 
-    <div className="brand-home-text">
-      <strong>UNWIND</strong>
-      <span>BRANDGUARD</span>
-    </div>
-  </button>
+            <div className="brand-home-text">
+              <strong>UNWIND</strong>
+              <span>BRANDGUARD</span>
+            </div>
+          </button>
 
           <button
             className="mobile-close"
@@ -607,13 +642,13 @@ if (showLanding && session) {
             <button
               key={item.name}
               data-tour={{
-  'Overview': 'overview',
-  'Brand Guidelines': 'guidelines',
-  'Content Reviews': 'reviews',
-  'Insights': 'insights',
-  'Team Members': 'members',
-  'Settings': 'settings'
-}[item.name]}
+                'Overview': 'overview',
+                'Brand Guidelines': 'guidelines',
+                'Content Reviews': 'reviews',
+                'Insights': 'insights',
+                'Team Members': 'members',
+                'Settings': 'settings'
+              }[item.name]}
               className={`nav-item ${active === item.name ? 'selected' : ''}`}
               onClick={() => {
                 setActive(item.name)
@@ -624,30 +659,31 @@ if (showLanding && session) {
               {item.name}
             </button>
           ))}
-                </nav>
+        </nav>
 
         <div className="sidebar-bottom">
           <button
             type="button"
             className="sidebar-tour-button"
-  onClick={() => {
-    setActive('Overview')
-    setMenuOpen(false)
-    setTourRestart(value => value + 1)
-  }}
->
-  <CircleHelp size={19} />
+            onClick={() => {
+              setActive('Overview')
+              setMenuOpen(false)
+              setTourRestart(value => value + 1)
+            }}
+          >
+            <CircleHelp size={19} />
 
-  <span className="sidebar-tour-copy">
-    <strong>Take a Tour</strong>
-    <small>Explore BrandGuard</small>
-  </span>
+            <span className="sidebar-tour-copy">
+              <strong>Take a Tour</strong>
+              <small>Explore BrandGuard</small>
+            </span>
 
-  <ArrowUpRight size={17} />
-</button>
+            <ArrowUpRight size={17} />
+          </button>
+
           <div className="profile">
             <div className="avatar">
-              {email.charAt(0).toUpperCase()}
+              {displayName.charAt(0).toUpperCase()}
             </div>
 
             <div className="profile-details">
@@ -657,7 +693,7 @@ if (showLanding && session) {
                   : 'Workspace member'}
               </strong>
 
-              <span>{email}</span>
+              <span>{displayName}</span>
             </div>
 
             <button
@@ -691,25 +727,36 @@ if (showLanding && session) {
             BrandGuard <span>/</span> {active}
           </div>
 
-          
+          <button
+            type="button"
+            className="tour-help-button"
+            onClick={() => {
+              setActive('Overview')
+              setTourRestart(value => value + 1)
+            }}
+            title="Take a tour of BrandGuard"
+          >
+            <CircleHelp size={17} />
+            <span>Take a Tour</span>
+          </button>
 
-<div className="topbar-right">
-  <div className="top-status">
-    <span className="status-dot" />
-    Authenticated workspace
-  </div>
+          <div className="topbar-right">
+            <div className="top-status">
+              <span className="status-dot" />
+              Authenticated workspace
+            </div>
 
-  <button
-    type="button"
-    className="theme-toggle"
-    onClick={toggleTheme}
-    aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-    title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-  >
-    {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
-    <span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
-  </button>
-</div>
+            <button
+              type="button"
+              className="theme-toggle"
+              onClick={toggleTheme}
+              aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            >
+              {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
+              <span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
+            </button>
+          </div>
         </header>
 
         <div className="page">
@@ -718,6 +765,83 @@ if (showLanding && session) {
               {invitationToken
                 ? 'Validating your workspace invitation...'
                 : 'Setting up your workspace...'}
+            </div>
+          ) : needsInvitationName ? (
+            <div className="content-panel">
+              <div style={{
+                maxWidth: '460px',
+                margin: '40px auto',
+                textAlign: 'center'
+              }}>
+                <div style={{ marginBottom: '18px' }}>
+                  <ShieldCheck size={38} />
+                </div>
+
+                <h2>Complete Your Profile</h2>
+
+                <p>
+                  Before joining this workspace, please enter your full name.
+                  It will be displayed in review comments and team activity.
+                </p>
+
+                <form
+                  onSubmit={saveInvitationName}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '14px',
+                    marginTop: '24px',
+                    textAlign: 'left'
+                  }}
+                >
+                  <label htmlFor="invitation-full-name">
+                    Full Name
+                  </label>
+
+                  <input
+                    id="invitation-full-name"
+                    type="text"
+                    value={invitationName}
+                    onChange={event => {
+                      setInvitationName(event.target.value)
+                      setInvitationNameError('')
+                    }}
+                    placeholder="Enter your full name"
+                    autoComplete="name"
+                    required
+                    minLength={2}
+                    maxLength={100}
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border-color, #333)',
+                      background: 'var(--input-background, transparent)',
+                      color: 'inherit',
+                      font: 'inherit'
+                    }}
+                  />
+
+                  {invitationNameError && (
+                    <p
+                      role="alert"
+                      style={{ color: '#e57373', margin: 0 }}
+                    >
+                      {invitationNameError}
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    className="secondary-button"
+                    disabled={savingInvitationName}
+                  >
+                    {savingInvitationName
+                      ? 'Saving your details...'
+                      : 'Save Name and Accept Invitation'}
+                  </button>
+                </form>
+              </div>
             </div>
           ) : workspaceError ? (
             <div className="content-panel error-panel">

@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import {
   FileSearch, Plus, Search, AlertTriangle, CheckCircle2,
   ShieldCheck, XCircle, Eye, RefreshCw, UploadCloud,
-  FileText, Image as ImageIcon, ExternalLink
+  FileText, Image as ImageIcon, ExternalLink, MessageSquare,
+  Send, Clock
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import './ContentReviewsPage.css';
@@ -36,11 +37,24 @@ export default function ContentReviewsPage({ workspace, role }) {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
 
+  // Reviewer discussion
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState('');
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentSaving, setCommentSaving] = useState(false);
+
+  // Version history
+  const [versions, setVersions] = useState([]);
+  const [versionsLoading, setVersionsLoading] = useState(false);
+  const [versionError, setVersionError] = useState('');
+
   const canSubmit = ['owner', 'admin', 'editor'].includes(role);
   const canReview = ['owner', 'admin', 'editor', 'reviewer'].includes(role);
 
   useEffect(() => {
-    if (workspace?.id) loadData();
+    if (workspace?.id) {
+      loadData();
+    }
   }, [workspace?.id]);
 
   async function loadData() {
@@ -75,14 +89,114 @@ export default function ContentReviewsPage({ workspace, role }) {
     setLoading(false);
   }
 
+  async function loadComments(reviewId) {
+    setCommentsLoading(true);
+
+    const { data, error: commentsError } = await supabase
+      .from('review_comments')
+      .select('*')
+      .eq('review_id', reviewId)
+      .eq('workspace_id', workspace.id)
+      .order('created_at', { ascending: true });
+
+    if (commentsError) {
+      setError(commentsError.message || 'Could not load review comments.');
+      setComments([]);
+    } else {
+      setComments(data || []);
+    }
+
+    setCommentsLoading(false);
+  }
+
+  async function loadVersions(reviewId) {
+    setVersionsLoading(true);
+    setVersionError('');
+
+    const { data, error: versionsError } = await supabase
+      .from('review_versions')
+      .select('*')
+      .eq('review_id', reviewId)
+      .eq('workspace_id', workspace.id)
+      .order('version_number', { ascending: false });
+
+    if (versionsError) {
+      setVersionError(
+        versionsError.message || 'Could not load version history.'
+      );
+      setVersions([]);
+    } else {
+      setVersions(data || []);
+    }
+
+    setVersionsLoading(false);
+  }
+
+  async function submitComment(event) {
+    event.preventDefault();
+
+    if (!canReview || !selected || !commentText.trim()) return;
+
+    setCommentSaving(true);
+    setError('');
+
+    try {
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
+
+      if (userError) throw userError;
+
+      if (!userData.user) {
+        throw new Error('Please sign in again.');
+      }
+
+      const metadata = userData.user.user_metadata || {};
+
+      const authorName =
+        metadata.full_name ||
+        metadata.fullName ||
+        metadata.name ||
+        userData.user.email?.split('@')[0] ||
+        'Workspace member';
+
+      const { data, error: insertError } = await supabase
+        .from('review_comments')
+        .insert({
+          review_id: selected.id,
+          workspace_id: workspace.id,
+          created_by: userData.user.id,
+          author_name: authorName,
+          comment_text: commentText.trim(),
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      setComments((current) => [...current, data]);
+      setCommentText('');
+    } catch (err) {
+      setError(err.message || 'Could not add comment.');
+    } finally {
+      setCommentSaving(false);
+    }
+  }
+
   async function openReview(review) {
     setError('');
+    setComments([]);
+    setCommentText('');
+    setVersions([]);
+    setVersionError('');
 
     setSelected({
       ...review,
       asset_url: null,
       asset_url_error: false,
     });
+
+    loadComments(review.id);
+    loadVersions(review.id);
 
     if (!review.asset_path) return;
 
@@ -146,12 +260,15 @@ export default function ContentReviewsPage({ workspace, role }) {
     }
 
     if (guidelines.length === 0) {
-      setError('Add at least one active brand guideline before submitting content.');
+      setError(
+        'Add at least one active brand guideline before submitting content.'
+      );
       return;
     }
 
     setSaving(true);
     setError('');
+    setVersionError('');
 
     let uploadedAssetPath = null;
 
@@ -234,11 +351,41 @@ export default function ContentReviewsPage({ workspace, role }) {
             .remove([uploadedAssetPath]);
 
           if (cleanupError) {
-            console.error('Asset cleanup failed:', cleanupError.message);
+            console.error(
+              'Asset cleanup failed:',
+              cleanupError.message
+            );
           }
         }
 
         throw insertError;
+      }
+
+      // Create the initial version snapshot.
+      const { error: versionInsertError } = await supabase
+        .from('review_versions')
+        .insert({
+          review_id: data.id,
+          workspace_id: workspace.id,
+          version_number: 1,
+          title: data.title,
+          content_type: data.content_type,
+          original_content: data.original_content,
+          suggested_content: data.suggested_content,
+          findings: data.findings || [],
+          summary: data.summary || '',
+          asset_path: data.asset_path || null,
+          asset_name: data.asset_name || null,
+          asset_mime_type: data.asset_mime_type || null,
+          asset_size: data.asset_size || null,
+          created_by: userData.user.id,
+        });
+
+      if (versionInsertError) {
+        console.error(
+          'Initial version snapshot failed:',
+          versionInsertError.message
+        );
       }
 
       setReviews((current) => [data, ...current]);
@@ -247,6 +394,13 @@ export default function ContentReviewsPage({ workspace, role }) {
       setShowForm(false);
 
       await openReview(data);
+
+      if (versionInsertError) {
+        setVersionError(
+          'The review was saved successfully, but its initial version snapshot could not be created: ' +
+          versionInsertError.message
+        );
+      }
     } catch (err) {
       setError(err.message || 'Unable to submit this review.');
     } finally {
@@ -299,7 +453,8 @@ export default function ContentReviewsPage({ workspace, role }) {
   const count = (status) =>
     reviews.filter((review) => review.status === status).length;
 
-  const severityClass = (severity) => `severity-${severity || 'low'}`;
+  const severityClass = (severity) =>
+    `severity-${severity || 'low'}`;
 
   if (loading) {
     return <div className="cr-loading">Loading content reviews...</div>;
@@ -313,7 +468,9 @@ export default function ContentReviewsPage({ workspace, role }) {
             <ShieldCheck size={14} /> BRAND GOVERNANCE
           </span>
           <h1>Content Reviews</h1>
-          <p>Check content against your approved brand standards before publication.</p>
+          <p>
+            Check content against your approved brand standards before publication.
+          </p>
         </div>
 
         {canSubmit && (
@@ -323,6 +480,8 @@ export default function ContentReviewsPage({ workspace, role }) {
               setError('');
               setShowForm(!showForm);
               setSelected(null);
+              setVersions([]);
+              setVersionError('');
             }}
           >
             <Plus size={17} /> Submit content
@@ -337,10 +496,22 @@ export default function ContentReviewsPage({ workspace, role }) {
       )}
 
       <div className="cr-stats">
-        <div><span>Total reviews</span><strong>{reviews.length}</strong></div>
-        <div><span>Pending</span><strong>{count('pending') + count('in_review')}</strong></div>
-        <div><span>Approved</span><strong>{count('approved')}</strong></div>
-        <div><span>Changes requested</span><strong>{count('changes_requested')}</strong></div>
+        <div>
+          <span>Total reviews</span>
+          <strong>{reviews.length}</strong>
+        </div>
+        <div>
+          <span>Pending</span>
+          <strong>{count('pending') + count('in_review')}</strong>
+        </div>
+        <div>
+          <span>Approved</span>
+          <strong>{count('approved')}</strong>
+        </div>
+        <div>
+          <span>Changes requested</span>
+          <strong>{count('changes_requested')}</strong>
+        </div>
       </div>
 
       {showForm && (
@@ -348,7 +519,9 @@ export default function ContentReviewsPage({ workspace, role }) {
           <div className="cr-panel-heading">
             <div>
               <h2>Submit content for review</h2>
-              <p>Submit text, an image, a PDF, or combine text with an asset.</p>
+              <p>
+                Submit text, an image, a PDF, or combine text with an asset.
+              </p>
             </div>
 
             <button
@@ -367,7 +540,9 @@ export default function ContentReviewsPage({ workspace, role }) {
           <label>Content title</label>
           <input
             value={form.title}
-            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, title: e.target.value })
+            }
             placeholder="e.g. November product launch campaign"
             required
           />
@@ -375,7 +550,9 @@ export default function ContentReviewsPage({ workspace, role }) {
           <label>Content type</label>
           <select
             value={form.content_type}
-            onChange={(e) => setForm({ ...form, content_type: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, content_type: e.target.value })
+            }
           >
             <option value="social_post">Social media post</option>
             <option value="marketing_copy">Marketing copy</option>
@@ -385,10 +562,17 @@ export default function ContentReviewsPage({ workspace, role }) {
             <option value="other">Other</option>
           </select>
 
-          <label>Text content <span className="cr-optional">(optional if uploading an asset)</span></label>
+          <label>
+            Text content{' '}
+            <span className="cr-optional">
+              (optional if uploading an asset)
+            </span>
+          </label>
           <textarea
             value={form.original_content}
-            onChange={(e) => setForm({ ...form, original_content: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, original_content: e.target.value })
+            }
             placeholder="Paste your content here..."
             rows={8}
           />
@@ -404,7 +588,11 @@ export default function ContentReviewsPage({ workspace, role }) {
 
             <label htmlFor="cr-file-upload" className="cr-upload-label">
               <UploadCloud size={22} />
-              <strong>{selectedFile ? 'Change selected file' : 'Choose an image or PDF'}</strong>
+              <strong>
+                {selectedFile
+                  ? 'Change selected file'
+                  : 'Choose an image or PDF'}
+              </strong>
               <span>PNG, JPG, WEBP or PDF · Maximum 10 MB</span>
             </label>
 
@@ -415,6 +603,7 @@ export default function ContentReviewsPage({ workspace, role }) {
                   : <ImageIcon size={18} />}
 
                 <span>{selectedFile.name}</span>
+
                 <button
                   type="button"
                   className="cr-remove-file"
@@ -431,9 +620,15 @@ export default function ContentReviewsPage({ workspace, role }) {
           </div>
 
           <div className="cr-form-footer">
-            <span>{guidelines.length} active guideline(s) will be checked</span>
+            <span>
+              {guidelines.length} active guideline(s) will be checked
+            </span>
 
-            <button className="cr-primary" type="submit" disabled={saving}>
+            <button
+              className="cr-primary"
+              type="submit"
+              disabled={saving}
+            >
               <FileSearch size={16} />
               {saving ? 'Analysing and saving...' : 'Analyse content'}
             </button>
@@ -449,7 +644,11 @@ export default function ContentReviewsPage({ workspace, role }) {
               <p>Submitted content and review status</p>
             </div>
 
-            <button className="cr-icon-button" onClick={loadData} title="Refresh">
+            <button
+              className="cr-icon-button"
+              onClick={loadData}
+              title="Refresh"
+            >
               <RefreshCw size={17} />
             </button>
           </div>
@@ -467,14 +666,18 @@ export default function ContentReviewsPage({ workspace, role }) {
             <div className="cr-empty">
               <FileSearch size={30} />
               <strong>No reviews found</strong>
-              <span>Submit content to start your brand review history.</span>
+              <span>
+                Submit content to start your brand review history.
+              </span>
             </div>
           ) : (
             <div className="cr-list">
               {filteredReviews.map((review) => (
                 <button
                   key={review.id}
-                  className={`cr-review-item ${selected?.id === review.id ? 'active' : ''}`}
+                  className={`cr-review-item ${
+                    selected?.id === review.id ? 'active' : ''
+                  }`}
                   onClick={() => {
                     setShowForm(false);
                     openReview(review);
@@ -507,7 +710,9 @@ export default function ContentReviewsPage({ workspace, role }) {
             <div className="cr-empty cr-detail-empty">
               <Eye size={32} />
               <strong>Select a review</strong>
-              <span>Choose a submission to inspect its findings and recommendations.</span>
+              <span>
+                Choose a submission to inspect its findings and recommendations.
+              </span>
             </div>
           ) : (
             <>
@@ -528,7 +733,9 @@ export default function ContentReviewsPage({ workspace, role }) {
 
               <div className="cr-summary">
                 <AlertTriangle size={18} />
-                <span>{selected.summary || 'No analysis summary available.'}</span>
+                <span>
+                  {selected.summary || 'No analysis summary available.'}
+                </span>
               </div>
 
               {selected.asset_path && (
@@ -542,11 +749,15 @@ export default function ContentReviewsPage({ workspace, role }) {
                         : <ImageIcon size={19} />}
 
                       <div>
-                        <strong>{selected.asset_name || 'Uploaded asset'}</strong>
+                        <strong>
+                          {selected.asset_name || 'Uploaded asset'}
+                        </strong>
                         <span>
                           {selected.asset_mime_type || 'File'} ·{' '}
                           {selected.asset_size
-                            ? `${(selected.asset_size / (1024 * 1024)).toFixed(2)} MB`
+                            ? `${(
+                                selected.asset_size / (1024 * 1024)
+                              ).toFixed(2)} MB`
                             : ''}
                         </span>
                       </div>
@@ -587,16 +798,20 @@ export default function ContentReviewsPage({ workspace, role }) {
                       </>
                     )}
 
-                    {!selected.asset_url && !selected.asset_url_error && (
-                      <span className="cr-asset-loading">Loading secure preview...</span>
-                    )}
+                    {!selected.asset_url &&
+                      !selected.asset_url_error && (
+                        <span className="cr-asset-loading">
+                          Loading secure preview...
+                        </span>
+                      )}
                   </div>
                 </>
               )}
 
               <h3>Original content</h3>
               <div className="cr-content-box">
-                {selected.original_content || 'No separate text content was submitted.'}
+                {selected.original_content ||
+                  'No separate text content was submitted.'}
               </div>
 
               {selected.original_content && (
@@ -623,7 +838,9 @@ export default function ContentReviewsPage({ workspace, role }) {
                   {selected.findings.map((finding) => (
                     <article className="cr-finding" key={finding.id}>
                       <div className="cr-finding-top">
-                        <strong>{finding.category?.replaceAll('_', ' ')}</strong>
+                        <strong>
+                          {finding.category?.replaceAll('_', ' ')}
+                        </strong>
                         <span className={severityClass(finding.severity)}>
                           {finding.severity}
                         </span>
@@ -651,7 +868,8 @@ export default function ContentReviewsPage({ workspace, role }) {
                           </strong>
 
                           <p>
-                            {finding.matchedText || finding.visualDescription}
+                            {finding.matchedText ||
+                              finding.visualDescription}
                           </p>
 
                           {finding.location && (
@@ -663,7 +881,9 @@ export default function ContentReviewsPage({ workspace, role }) {
                       )}
 
                       <div className="cr-evidence">
-                        <strong>Matched guideline: {finding.guideline}</strong>
+                        <strong>
+                          Matched guideline: {finding.guideline}
+                        </strong>
                         <p>{finding.evidence}</p>
                       </div>
 
@@ -676,37 +896,250 @@ export default function ContentReviewsPage({ workspace, role }) {
                 </div>
               )}
 
-              {canReview && !['approved', 'rejected'].includes(selected.status) && (
-                <div className="cr-actions">
-                  <button
-                    className="cr-secondary"
-                    onClick={() => updateStatus(selected, 'in_review')}
-                  >
-                    <Eye size={15} /> Mark in review
-                  </button>
+              {/* Version History */}
+              <section className="cr-version-history">
+                <div className="cr-version-heading">
+                  <div>
+                    <h3>
+                      <Clock size={16} />
+                      Version History
+                    </h3>
+                    <span>
+                      {versions.length} saved version(s)
+                    </span>
+                  </div>
 
                   <button
-                    className="cr-secondary"
-                    onClick={() => updateStatus(selected, 'changes_requested')}
+                    type="button"
+                    className="cr-icon-button"
+                    onClick={() => loadVersions(selected.id)}
+                    disabled={versionsLoading}
+                    title="Refresh version history"
                   >
-                    <AlertTriangle size={15} /> Request changes
-                  </button>
-
-                  <button
-                    className="cr-primary"
-                    onClick={() => updateStatus(selected, 'approved')}
-                  >
-                    <CheckCircle2 size={15} /> Approve
-                  </button>
-
-                  <button
-                    className="cr-danger"
-                    onClick={() => updateStatus(selected, 'rejected')}
-                  >
-                    <XCircle size={15} /> Reject
+                    <RefreshCw size={15} />
                   </button>
                 </div>
-              )}
+
+                {versionError && (
+                  <div className="cr-version-error">
+                    <AlertTriangle size={15} />
+                    {versionError}
+                  </div>
+                )}
+
+                {versionsLoading ? (
+                  <p className="cr-version-empty">
+                    Loading version history...
+                  </p>
+                ) : versions.length === 0 ? (
+                  <p className="cr-version-empty">
+                    No saved versions are available for this review.
+                  </p>
+                ) : (
+                  <div className="cr-version-list">
+                    {versions.map((version) => (
+                      <details
+                        className="cr-version-item"
+                        key={version.id}
+                      >
+                        <summary>
+                          <div className="cr-version-main">
+                            <strong>
+                              Version {version.version_number}
+                            </strong>
+                            <span>{version.title}</span>
+                          </div>
+
+                          <div className="cr-version-date">
+                            {new Date(
+                              version.created_at
+                            ).toLocaleString()}
+                          </div>
+                        </summary>
+
+                        <div className="cr-version-content">
+                          <div>
+                            <strong>Content type</strong>
+                            <p>
+                              {(version.content_type || '')
+                                .replaceAll('_', ' ')}
+                            </p>
+                          </div>
+
+                          <div>
+                            <strong>Original content</strong>
+                            <div className="cr-content-box">
+                              {version.original_content ||
+                                'No separate text content.'}
+                            </div>
+                          </div>
+
+                          <div>
+                            <strong>Suggested correction</strong>
+                            <div className="cr-content-box cr-suggestion">
+                              {version.suggested_content ||
+                                'No suggested correction available.'}
+                            </div>
+                          </div>
+
+                          <div>
+                            <strong>Analysis summary</strong>
+                            <p>
+                              {version.summary || 'No summary available.'}
+                            </p>
+                          </div>
+
+                          <div>
+                            <strong>Findings saved</strong>
+                            <p>
+                              {(version.findings || []).length} finding(s)
+                            </p>
+                          </div>
+
+                          {version.asset_name && (
+                            <div className="cr-version-asset">
+                              <FileText size={15} />
+                              {version.asset_name}
+                            </div>
+                          )}
+                        </div>
+                      </details>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {/* Reviewer Discussion */}
+              <section className="cr-comments">
+                <div className="cr-comments-heading">
+                  <div>
+                    <h3>
+                      <MessageSquare size={16} />
+                      Reviewer Discussion
+                    </h3>
+                    <span>{comments.length} comment(s)</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="cr-icon-button"
+                    onClick={() => loadComments(selected.id)}
+                    title="Refresh discussion"
+                    disabled={commentsLoading}
+                  >
+                    <RefreshCw size={15} />
+                  </button>
+                </div>
+
+                {commentsLoading ? (
+                  <p className="cr-comments-empty">
+                    Loading discussion...
+                  </p>
+                ) : comments.length === 0 ? (
+                  <p className="cr-comments-empty">
+                    No comments yet. Start the review discussion.
+                  </p>
+                ) : (
+                  <div className="cr-comment-list">
+                    {comments.map((comment) => (
+                      <article className="cr-comment" key={comment.id}>
+                        <div className="cr-comment-meta">
+                          <strong>
+                            {comment.author_name ||
+                              (comment.created_by
+                                ? `User · ${comment.created_by.slice(0, 8)}…`
+                                : 'Former member')}
+                          </strong>
+                          <span>
+                            <Clock size={12} />
+                            {new Date(
+                              comment.created_at
+                            ).toLocaleString()}
+                          </span>
+                        </div>
+                        <p>{comment.comment_text}</p>
+                      </article>
+                    ))}
+                  </div>
+                )}
+
+                {canReview ? (
+                  <form
+                    className="cr-comment-form"
+                    onSubmit={submitComment}
+                  >
+                    <textarea
+                      value={commentText}
+                      onChange={(event) =>
+                        setCommentText(event.target.value)
+                      }
+                      placeholder="Share feedback or discuss this review..."
+                      rows={3}
+                      maxLength={3000}
+                      aria-label="Write a review comment"
+                    />
+
+                    <div className="cr-comment-form-footer">
+                      <span>{commentText.length}/3000</span>
+                      <button
+                        className="cr-primary"
+                        type="submit"
+                        disabled={
+                          commentSaving || !commentText.trim()
+                        }
+                      >
+                        <Send size={15} />
+                        {commentSaving ? 'Posting...' : 'Post comment'}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <p className="cr-comments-readonly">
+                    You have view-only access to this discussion.
+                  </p>
+                )}
+              </section>
+
+              {canReview &&
+                !['approved', 'rejected'].includes(selected.status) && (
+                  <div className="cr-actions">
+                    <button
+                      className="cr-secondary"
+                      onClick={() =>
+                        updateStatus(selected, 'in_review')
+                      }
+                    >
+                      <Eye size={15} /> Mark in review
+                    </button>
+
+                    <button
+                      className="cr-secondary"
+                      onClick={() =>
+                        updateStatus(selected, 'changes_requested')
+                      }
+                    >
+                      <AlertTriangle size={15} /> Request changes
+                    </button>
+
+                    <button
+                      className="cr-primary"
+                      onClick={() =>
+                        updateStatus(selected, 'approved')
+                      }
+                    >
+                      <CheckCircle2 size={15} /> Approve
+                    </button>
+
+                    <button
+                      className="cr-danger"
+                      onClick={() =>
+                        updateStatus(selected, 'rejected')
+                      }
+                    >
+                      <XCircle size={15} /> Reject
+                    </button>
+                  </div>
+                )}
 
               {['approved', 'rejected'].includes(selected.status) && (
                 <div className="cr-no-findings">
