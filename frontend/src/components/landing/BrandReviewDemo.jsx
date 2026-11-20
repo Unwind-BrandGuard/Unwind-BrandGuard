@@ -1,3 +1,4 @@
+import BrandDNAIcon from '../BrandDNAIcon.jsx'
 
 import { useState } from "react";
 import {
@@ -6,7 +7,6 @@ import {
   CheckCircle2,
   FileText,
   RotateCcw,
-  ShieldCheck,
   Sparkles,
   X,
 } from "lucide-react";
@@ -69,11 +69,11 @@ export default function BrandReviewDemo() {
       <div className="bg-review-topbar">
         <div className="bg-review-topbar-title">
           <div className="bg-review-app-icon">
-            <ShieldCheck size={20} />
+            <BrandDNAIcon size={20} />
           </div>
           <div>
             <strong>Content Review</strong>
-            <span>Campaign draft · Sample workspace</span>
+            <span>Campaign draft Ã‚Â· Sample workspace</span>
           </div>
         </div>
 
@@ -160,7 +160,7 @@ export default function BrandReviewDemo() {
 
           <div className="bg-review-content-block">
             <span className="bg-review-label">
-              <ShieldCheck size={14} />
+              <BrandDNAIcon size={14} />
               RELEVANT BRAND GUIDELINE
             </span>
             <p className="bg-review-guideline">{finding.guideline}</p>
@@ -228,8 +228,8 @@ export default function BrandReviewDemo() {
       </div>
 
       <div className="bg-review-footer">
-        <ShieldCheck size={15} />
-        <span>Illustrative demo · No real AI analysis or saved decisions</span>
+        <BrandDNAIcon size={15} />
+        <span>Illustrative demo Ã‚Â· No real AI analysis or saved decisions</span>
       </div>
     </div>
   );
