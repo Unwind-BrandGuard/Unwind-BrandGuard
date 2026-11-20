@@ -30,17 +30,37 @@ import { getFriendlyError } from '../utils/errorMessages'
 import './InsightsPage.css'
 
 const CHART_COLORS = {
-  approved: '#16f5d0',
-  pending: '#7ca7ff',
-  changes_requested: '#f5c16c',
-  rejected: '#ff8585',
+  light: {
+    approved: '#4e8262',
+    pending: '#8299b6',
+    changes_requested: '#c49a5d',
+    rejected: '#c27b75',
+    other: '#a3aaa1',
+  },
+  dark: {
+    approved: '#a0c9a9',
+    pending: '#a9bbdc',
+    changes_requested: '#e1bf85',
+    rejected: '#e2a29d',
+    other: '#85988b',
+  },
 }
 
-const TOOLTIP_STYLE = {
-  background: '#101e1b',
-  border: '1px solid #294c42',
-  borderRadius: 10,
-  color: '#eafffa',
+const CHART_THEME = {
+  light: {
+    accent: '#4e8262',
+    grid: '#e1e5dc',
+    muted: '#718076',
+    tooltipBg: '#ffffff',
+    text: '#263a30',
+  },
+  dark: {
+    accent: '#a0c9a9',
+    grid: '#35463a',
+    muted: '#a1b2a5',
+    tooltipBg: '#1b2720',
+    text: '#e9eee7',
+  },
 }
 
 function dateKey(date) {
@@ -62,7 +82,47 @@ export default function InsightsPage({ workspace }) {
   const [dateRange, setDateRange] = useState(30)
   const [refreshing, setRefreshing] = useState(false)
 
-  const workspaceId = workspace?.id
+const [theme, setTheme] = useState(
+  () => document.documentElement.getAttribute('data-theme') || 'light'
+)
+
+useEffect(() => {
+  const root = document.documentElement
+
+  const syncTheme = () => {
+    setTheme(
+      root.getAttribute('data-theme') === 'dark'
+        ? 'dark'
+        : 'light'
+    )
+  }
+
+  syncTheme()
+
+  const observer = new MutationObserver(syncTheme)
+
+  observer.observe(root, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  })
+
+  return () => observer.disconnect()
+}, [])
+
+const colors = CHART_COLORS[theme]
+const chartTheme = CHART_THEME[theme]
+
+const tooltipStyle = {
+  backgroundColor: chartTheme.tooltipBg,
+  border: `1px solid ${chartTheme.grid}`,
+  borderRadius: 12,
+  color: chartTheme.text,
+  fontFamily: 'Manrope, sans-serif',
+  fontSize: 12,
+  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.08)',
+}
+
+const workspaceId = workspace?.id
 
   const loadInsights = useCallback(async (showLoader = true) => {
     if (!workspaceId) {
@@ -214,44 +274,48 @@ export default function InsightsPage({ workspace }) {
     return days
   }, [filteredReviews, dateRange])
 
-  // Donut chart
-  const outcomeData = useMemo(() => [
+ // Donut chart — theme-aware and immutable
+const outcomeData = useMemo(() => {
+  const items = [
     {
       name: 'Approved',
       value: stats.approved,
-      color: CHART_COLORS.approved,
+      color: colors.approved,
     },
     {
       name: 'Pending / in review',
       value: stats.pending,
-      color: CHART_COLORS.pending,
+      color: colors.pending,
     },
     {
       name: 'Changes requested',
       value: stats.changes,
-      color: CHART_COLORS.changes_requested,
+      color: colors.changes_requested,
     },
     {
       name: 'Rejected',
       value: stats.rejected,
-      color: CHART_COLORS.rejected,
+      color: colors.rejected,
     },
-  ].filter((item) => item.value > 0), [stats])
+  ].filter(item => item.value > 0)
 
-  const classifiedOutcomes = outcomeData.reduce(
+  const classified = items.reduce(
     (sum, item) => sum + item.value,
     0
   )
 
-  const otherCount = Math.max(0, stats.total - classifiedOutcomes)
+  const otherCount = Math.max(0, stats.total - classified)
 
   if (otherCount > 0) {
-    outcomeData.push({
+    items.push({
       name: 'Other',
       value: otherCount,
-      color: '#9baaa7',
+      color: colors.other,
     })
   }
+
+  return items
+}, [stats, colors])
 
   if (loading) {
     return (
@@ -420,28 +484,28 @@ export default function InsightsPage({ workspace }) {
                     x2="0"
                     y2="1"
                   >
-                    <stop
-                      offset="0%"
-                      stopColor="#16f5d0"
-                      stopOpacity={0.35}
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor="#16f5d0"
-                      stopOpacity={0}
-                    />
+                   <stop
+  offset="0%"
+  stopColor={chartTheme.accent}
+  stopOpacity={0.22}
+/>
+<stop
+  offset="100%"
+  stopColor={chartTheme.accent}
+  stopOpacity={0}
+/>
                   </linearGradient>
                 </defs>
 
                 <CartesianGrid
-                  stroke="#263d38"
+                  stroke={chartTheme.grid}
                   strokeDasharray="3 4"
                   vertical={false}
                 />
 
                 <XAxis
                   dataKey="date"
-                  stroke="#829994"
+                  stroke={chartTheme.muted}
                   tick={{ fontSize: 11 }}
                   minTickGap={25}
                   tickLine={false}
@@ -449,7 +513,7 @@ export default function InsightsPage({ workspace }) {
                 />
 
                 <YAxis
-                  stroke="#829994"
+                  stroke={chartTheme.muted}
                   tick={{ fontSize: 11 }}
                   allowDecimals={false}
                   tickLine={false}
@@ -469,7 +533,13 @@ export default function InsightsPage({ workspace }) {
                   stroke="#16f5d0"
                   strokeWidth={3}
                   fill="url(#insActivityGradient)"
-                  activeDot={{ r: 5 }}
+                  dot={false}
+activeDot={{
+  r: 5,
+  fill: chartTheme.accent,
+  stroke: chartTheme.tooltipBg,
+  strokeWidth: 2,
+}}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -515,7 +585,7 @@ export default function InsightsPage({ workspace }) {
                       ))}
                     </Pie>
 
-                    <Tooltip contentStyle={TOOLTIP_STYLE} />
+                    <Tooltip contentStyle={tooltipStyle} />
                   </PieChart>
                 </ResponsiveContainer>
 
@@ -579,7 +649,7 @@ export default function InsightsPage({ workspace }) {
                   }}
                 >
                   <CartesianGrid
-                    stroke="#263d38"
+                    stroke={chartTheme.grid}
                     strokeDasharray="3 4"
                     horizontal={false}
                   />
@@ -587,7 +657,7 @@ export default function InsightsPage({ workspace }) {
                   <XAxis
                     type="number"
                     allowDecimals={false}
-                    stroke="#829994"
+                    stroke={chartTheme.muted}
                     tick={{ fontSize: 11 }}
                   />
 
@@ -609,7 +679,7 @@ export default function InsightsPage({ workspace }) {
                   <Bar
                     dataKey="count"
                     name="Findings"
-                    fill="#16cbb0"
+                    fill={chartTheme.accent}
                     radius={[0, 6, 6, 0]}
                     maxBarSize={24}
                   />

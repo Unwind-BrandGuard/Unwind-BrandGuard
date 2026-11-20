@@ -413,3 +413,218 @@
     align-items: flex-start;
   }
 }
+
+
+
+/* PREMIUM TEAM MEMBERS — THEME OVERRIDES */
+
+.team-page {
+  color: var(--text);
+}
+
+.team-loading,
+.empty-team,
+.empty-invitations,
+.protected-member {
+  color: var(--muted) !important;
+}
+
+.team-refresh {
+  background: var(--panel);
+  color: var(--text);
+  border-color: var(--border);
+  border-radius: 10px;
+  transition: background .2s ease, border-color .2s ease,
+              transform .2s ease;
+}
+
+.team-refresh:hover {
+  background: var(--hover-bg);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.team-stat-card,
+.team-panel {
+  background: var(--panel);
+  border-color: var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  transition: border-color .22s ease, transform .22s ease,
+              box-shadow .22s ease;
+}
+
+.team-stat-card {
+  color: var(--accent);
+}
+
+.team-stat-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+}
+
+.team-stat-card strong {
+  color: var(--text);
+  font: 500 31px 'Playfair Display', Georgia, serif;
+}
+
+.team-stat-card span,
+.team-panel-heading p {
+  color: var(--muted);
+}
+
+.team-panel-heading {
+  color: var(--accent);
+}
+
+.team-panel-heading h2 {
+  color: var(--text);
+  font: 500 23px 'Playfair Display', Georgia, serif;
+}
+
+.invite-form label {
+  color: var(--text);
+}
+
+.invite-form input,
+.invite-form select,
+.member-actions select {
+  background: var(--input-bg);
+  color: var(--text);
+  border-color: var(--border);
+  border-radius: 10px;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.invite-form input:focus,
+.invite-form select:focus,
+.member-actions select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.invite-form button {
+  background: var(--accent);
+  color: var(--button-text);
+  border-radius: 10px;
+  transition: transform .2s ease, filter .2s ease;
+}
+
+.invite-form button:hover:not(:disabled) {
+  background: var(--accent);
+  filter: brightness(1.08);
+  transform: translateY(-2px);
+}
+
+.team-table th {
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.team-table td {
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.team-table tbody tr {
+  transition: background .2s ease;
+}
+
+.team-table tbody tr:hover {
+  background: var(--accent-soft);
+}
+
+.member-avatar {
+  background: var(--accent-soft);
+  border-color: var(--border);
+  color: var(--accent);
+}
+
+.member-identity strong,
+.invitation-item strong {
+  color: var(--text);
+}
+
+.member-identity span,
+.invitation-item span {
+  color: var(--muted);
+}
+
+.role-pill {
+  background: var(--panel2);
+  color: var(--muted);
+  border-color: var(--border);
+}
+
+.role-pill.owner,
+.role-pill.admin {
+  background: rgba(73, 143, 92, .11);
+  color: #3e8255;
+  border-color: rgba(73, 143, 92, .25);
+}
+
+.role-pill.reviewer {
+  background: rgba(166, 126, 61, .11);
+  color: #96702f;
+  border-color: rgba(166, 126, 61, .25);
+}
+
+[data-theme='dark'] .role-pill.owner,
+[data-theme='dark'] .role-pill.admin {
+  color: #a3d3ae;
+}
+
+[data-theme='dark'] .role-pill.reviewer {
+  color: #e0c58e;
+}
+
+.invitation-item {
+  border-color: var(--border);
+}
+
+.remove-member,
+.revoke-invitation {
+  background: rgba(171, 77, 72, .08);
+  border-color: rgba(171, 77, 72, .22);
+  color: #b2534d;
+  transition: background .2s ease, border-color .2s ease;
+}
+
+.remove-member:hover,
+.revoke-invitation:hover {
+  background: rgba(171, 77, 72, .16);
+  border-color: #b2534d;
+}
+
+[data-theme='dark'] .remove-member,
+[data-theme='dark'] .revoke-invitation {
+  color: #e8aaa5;
+}
+
+.team-alert.error {
+  background: rgba(171, 77, 72, .08);
+  border-color: rgba(171, 77, 72, .25);
+  color: #ae514b;
+}
+
+.team-alert.success {
+  background: rgba(73, 143, 92, .09);
+  border-color: rgba(73, 143, 92, .24);
+  color: #397d50;
+}
+
+[data-theme='dark'] .team-alert.error {
+  color: #e8aaa5;
+}
+
+[data-theme='dark'] .team-alert.success {
+  color: #a3d3ae;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .team-stat-card:hover,
+  .team-refresh:hover,
+  .invite-form button:hover {
+    transform: none;
+  }
+}
