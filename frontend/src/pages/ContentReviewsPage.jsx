@@ -1,11 +1,9 @@
-
 import { useEffect, useState } from 'react';
 import {
   FileSearch, Plus, Search, AlertTriangle, CheckCircle2,
   XCircle, Eye, RefreshCw, UploadCloud,
   FileText, Image as ImageIcon, ExternalLink, MessageSquare,
-  Send, Clock,
-  ShieldCheck,
+  Send, Clock, ShieldCheck,
 } from 'lucide-react';
 import { supabase } from '../supabase';
 import './ContentReviewsPage.css';
@@ -32,7 +30,10 @@ export default function ContentReviewsPage({ workspace, role }) {
   const [form, setForm] = useState(initialForm);
   const [selected, setSelected] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+
   const [showForm, setShowForm] = useState(false);
+  const [versionMode, setVersionMode] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -247,6 +248,7 @@ export default function ContentReviewsPage({ workspace, role }) {
     setSelectedFile(file);
   }
 
+  // Create a new review.
   async function submitReview(event) {
     event.preventDefault();
 
@@ -345,24 +347,20 @@ export default function ContentReviewsPage({ workspace, role }) {
         .single();
 
       if (insertError) {
-        // Remove the uploaded file if saving its review failed.
         if (uploadedAssetPath) {
           const { error: cleanupError } = await supabase.storage
             .from(STORAGE_BUCKET)
             .remove([uploadedAssetPath]);
 
           if (cleanupError) {
-            console.error(
-              'Asset cleanup failed:',
-              cleanupError.message
-            );
+            console.error('Asset cleanup failed:', cleanupError.message);
           }
         }
 
         throw insertError;
       }
 
-      // Create the initial version snapshot.
+      // Save Version 1.
       const { error: versionInsertError } = await supabase
         .from('review_versions')
         .insert({
@@ -393,6 +391,7 @@ export default function ContentReviewsPage({ workspace, role }) {
       setForm(initialForm);
       setSelectedFile(null);
       setShowForm(false);
+      setVersionMode(false);
 
       await openReview(data);
 
@@ -404,6 +403,232 @@ export default function ContentReviewsPage({ workspace, role }) {
       }
     } catch (err) {
       setError(err.message || 'Unable to submit this review.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // Open the form using the selected review's current content.
+  function startNewVersion() {
+    if (!selected || !canSubmit) return;
+
+    setForm({
+      title: selected.title,
+      content_type: selected.content_type,
+      original_content: selected.original_content || '',
+    });
+
+    setSelectedFile(null);
+    setVersionMode(true);
+    setShowForm(true);
+    setError('');
+    setVersionError('');
+  }
+
+  // Analyse and save a new version of the existing review.
+  async function submitNewVersion(event) {
+    event.preventDefault();
+
+    if (!selected || !canSubmit) return;
+
+    if (!form.title.trim()) {
+      setError('Please enter a content title.');
+      return;
+    }
+
+    // An existing asset cannot be sent to Gemini again automatically.
+    // Upload the revised image/PDF if you want it analysed again.
+    if (!form.original_content.trim() && !selectedFile) {
+      setError(
+        'Please enter text content or upload the revised image/PDF.'
+      );
+      return;
+    }
+
+    if (!guidelines.length) {
+      setError('Add at least one active brand guideline first.');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    setVersionError('');
+
+    let uploadedAssetPath = null;
+    let reviewWasUpdated = false;
+
+    try {
+      const { data: userData, error: userError } =
+        await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!userData.user) throw new Error('Please sign in again.');
+
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+
+      if (sessionError) throw sessionError;
+
+      const accessToken = sessionData.session?.access_token;
+
+      if (!accessToken) {
+        throw new Error('Your session has expired.');
+      }
+
+      const requestBody = new FormData();
+
+      requestBody.append('title', form.title.trim());
+      requestBody.append('content_type', form.content_type);
+      requestBody.append('content', form.original_content.trim());
+      requestBody.append('workspace_id', workspace.id);
+
+      if (selectedFile) {
+        requestBody.append('file', selectedFile);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: requestBody,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || 'AI analysis failed.');
+      }
+
+      const analysis = result.analysis;
+      const asset = result.asset || null;
+
+      uploadedAssetPath = asset?.path || null;
+
+      if (selectedFile && !asset?.path) {
+        throw new Error(
+          'The revised file was analysed, but its asset could not be saved.'
+        );
+      }
+
+      // Preserve the previous asset if no replacement was uploaded.
+      const versionData = {
+        title: form.title.trim(),
+        content_type: form.content_type,
+        original_content: form.original_content.trim(),
+        suggested_content: analysis.suggestedContent || '',
+        findings: analysis.findings || [],
+        summary: analysis.summary || '',
+        asset_path: asset?.path || selected.asset_path || null,
+        asset_name: asset?.name || selected.asset_name || null,
+        asset_mime_type:
+          asset?.mime_type || selected.asset_mime_type || null,
+        asset_size: asset?.size ?? selected.asset_size ?? null,
+      };
+
+      // Get the latest version number.
+      const { data: latestVersions, error: latestError } = await supabase
+        .from('review_versions')
+        .select('version_number')
+        .eq('review_id', selected.id)
+        .eq('workspace_id', workspace.id)
+        .order('version_number', { ascending: false })
+        .limit(1);
+
+      if (latestError) throw latestError;
+
+      let nextVersion = 1;
+
+      if (latestVersions?.length) {
+        nextVersion = latestVersions[0].version_number + 1;
+      } else {
+        // If Version 1 was not saved during the original submission,
+        // create its snapshot before saving the new version.
+        const { error: baselineError } = await supabase
+          .from('review_versions')
+          .insert({
+            review_id: selected.id,
+            workspace_id: workspace.id,
+            version_number: 1,
+            title: selected.title,
+            content_type: selected.content_type,
+            original_content: selected.original_content || '',
+            suggested_content: selected.suggested_content || '',
+            findings: selected.findings || [],
+            summary: selected.summary || '',
+            asset_path: selected.asset_path || null,
+            asset_name: selected.asset_name || null,
+            asset_mime_type: selected.asset_mime_type || null,
+            asset_size: selected.asset_size || null,
+            created_by: userData.user.id,
+          });
+
+        if (baselineError) throw baselineError;
+
+        nextVersion = 2;
+      }
+
+      // Update the existing review rather than creating a duplicate.
+      const { data: updatedReview, error: updateError } = await supabase
+        .from('content_reviews')
+        .update({
+          ...versionData,
+          status: 'pending',
+          reviewed_by: null,
+          reviewed_at: null,
+        })
+        .eq('id', selected.id)
+        .eq('workspace_id', workspace.id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      reviewWasUpdated = true;
+
+      // Save the new version snapshot.
+      const { error: snapshotError } = await supabase
+        .from('review_versions')
+        .insert({
+          review_id: selected.id,
+          workspace_id: workspace.id,
+          version_number: nextVersion,
+          ...versionData,
+          created_by: userData.user.id,
+        });
+
+      setReviews((current) =>
+        current.map((review) =>
+          review.id === selected.id ? updatedReview : review
+        )
+      );
+
+      setForm(initialForm);
+      setSelectedFile(null);
+      setShowForm(false);
+      setVersionMode(false);
+
+      await openReview(updatedReview);
+
+      if (snapshotError) {
+        setVersionError(
+          `Review updated, but Version ${nextVersion} could not be saved: ${snapshotError.message}`
+        );
+      }
+    } catch (err) {
+      // If the newly uploaded file was not attached to the updated review,
+      // remove it to avoid leaving an unused storage object.
+      if (uploadedAssetPath && !reviewWasUpdated) {
+        const { error: cleanupError } = await supabase.storage
+          .from(STORAGE_BUCKET)
+          .remove([uploadedAssetPath]);
+
+        if (cleanupError) {
+          console.error('Asset cleanup failed:', cleanupError.message);
+        }
+      }
+
+      setError(err.message || 'Unable to create the new version.');
     } finally {
       setSaving(false);
     }
@@ -477,8 +702,12 @@ export default function ContentReviewsPage({ workspace, role }) {
         {canSubmit && (
           <button
             className="cr-primary"
+            type="button"
             onClick={() => {
               setError('');
+              setVersionMode(false);
+              setForm(initialForm);
+              setSelectedFile(null);
               setShowForm(!showForm);
               setSelected(null);
               setVersions([]);
@@ -516,12 +745,21 @@ export default function ContentReviewsPage({ workspace, role }) {
       </div>
 
       {showForm && (
-        <form className="cr-panel cr-form" onSubmit={submitReview}>
+        <form
+          className="cr-panel cr-form"
+          onSubmit={versionMode ? submitNewVersion : submitReview}
+        >
           <div className="cr-panel-heading">
             <div>
-              <h2>Submit content for review</h2>
+              <h2>
+                {versionMode
+                  ? `Create new version of ${selected?.title || 'review'}`
+                  : 'Submit content for review'}
+              </h2>
               <p>
-                Submit text, an image, a PDF, or combine text with an asset.
+                {versionMode
+                  ? 'Edit the content and run a fresh analysis. The previous version will remain in version history.'
+                  : 'Submit text, an image, a PDF, or combine text with an asset.'}
               </p>
             </div>
 
@@ -531,6 +769,8 @@ export default function ContentReviewsPage({ workspace, role }) {
               onClick={() => {
                 setShowForm(false);
                 setSelectedFile(null);
+                setVersionMode(false);
+                setForm(initialForm);
                 setError('');
               }}
             >
@@ -577,6 +817,14 @@ export default function ContentReviewsPage({ workspace, role }) {
             placeholder="Paste your content here..."
             rows={8}
           />
+
+          {versionMode && selected?.asset_path && (
+            <p className="cr-optional">
+              This review already has an uploaded asset. It will be retained
+              if you do not upload another file. Upload the revised image/PDF
+              if you want Gemini to analyse the updated visual asset.
+            </p>
+          )}
 
           <label>Upload image or PDF</label>
           <div className="cr-upload-box">
@@ -631,7 +879,11 @@ export default function ContentReviewsPage({ workspace, role }) {
               disabled={saving}
             >
               <FileSearch size={16} />
-              {saving ? 'Analysing and saving...' : 'Analyse content'}
+              {saving
+                ? 'Analysing and saving...'
+                : versionMode
+                  ? 'Analyse and save new version'
+                  : 'Analyse content'}
             </button>
           </div>
         </form>
@@ -647,6 +899,7 @@ export default function ContentReviewsPage({ workspace, role }) {
 
             <button
               className="cr-icon-button"
+              type="button"
               onClick={loadData}
               title="Refresh"
             >
@@ -681,6 +934,7 @@ export default function ContentReviewsPage({ workspace, role }) {
                   }`}
                   onClick={() => {
                     setShowForm(false);
+                    setVersionMode(false);
                     openReview(review);
                   }}
                 >
@@ -731,6 +985,18 @@ export default function ContentReviewsPage({ workspace, role }) {
                   {selected.status.replaceAll('_', ' ')}
                 </span>
               </div>
+
+              {canSubmit && (
+                <button
+                  type="button"
+                  className="cr-secondary"
+                  onClick={startNewVersion}
+                  disabled={saving}
+                >
+                  <FileSearch size={15} />
+                  Create new version
+                </button>
+              )}
 
               <div className="cr-summary">
                 <AlertTriangle size={18} />
@@ -836,8 +1102,11 @@ export default function ContentReviewsPage({ workspace, role }) {
                 </div>
               ) : (
                 <div className="cr-findings">
-                  {selected.findings.map((finding) => (
-                    <article className="cr-finding" key={finding.id}>
+                  {selected.findings.map((finding, index) => (
+                    <article
+                      className="cr-finding"
+                      key={finding.id || index}
+                    >
                       <div className="cr-finding-top">
                         <strong>
                           {finding.category?.replaceAll('_', ' ')}
