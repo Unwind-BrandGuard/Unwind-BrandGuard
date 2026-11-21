@@ -463,9 +463,7 @@ useEffect(() => {
           <div className="bg-landing-hero-visual bg-landing-hero-visual--cinematic">
             <InteractiveBrandCore />
           </div>
-          <a className="bg-landing-scroll" href="#problem" onClick={(e) => goTo(e, 'problem')} aria-label="Scroll to the next section">
-            <span>Scroll</span><i aria-hidden="true" />
-          </a>
+         
         </section>
 
         {/* B — The problem */}
@@ -590,11 +588,7 @@ useEffect(() => {
         {/* E — How it works */}
         <section className="bg-landing-section bg-landing-how" id="how-it-works" aria-labelledby="bg-how-title">
 
-<div
-  className="bg-workflow-progress-line"
-  aria-hidden="true"
-  style={{ "--workflow-progress": workflowProgress }}
-/>
+
 
           <Reveal className="bg-landing-head">
             <p className="bg-landing-eyebrow">From guidelines to confidence</p>
@@ -617,7 +611,9 @@ useEffect(() => {
                 <p>{s.text}</p>
               </Reveal>
             ))}
-          </ol>
+                    </ol>
+
+       
         </section>
 
         {/* F — Human in the loop */}
@@ -646,15 +642,56 @@ useEffect(() => {
           </Reveal>
         </section>
 
-        {/* G — Insights */}
-        <section className="bg-landing-section" id="insights" aria-labelledby="bg-insights-title">
-          <Reveal className="bg-landing-head">
-            <h2 id="bg-insights-title" className="bg-landing-display">See the patterns behind every decision.</h2>
-          </Reveal>
-          <Reveal delay={120} className="bg-landing-section-illustration">
-            <img src="/illustrations/governance-insights.svg" alt="Brand governance insights illustration" loading="lazy" />
-          </Reveal>
-        </section>
+      {/* G — Insights */}
+{/* G — Insights */}
+<section
+  className="bg-landing-section bg-insights-section"
+  id="insights"
+  aria-labelledby="bg-insights-title"
+>
+  <div className="bg-insights-layout">
+
+    {/* LEFT — Text */}
+    <Reveal className="bg-insights-content">
+      <p className="bg-landing-eyebrow">
+        INTELLIGENCE IN ACTION
+      </p>
+
+      <h2
+        id="bg-insights-title"
+        className="bg-landing-display"
+      >
+        See the patterns
+        <br />
+        behind every decision.
+      </h2>
+
+      <p className="bg-landing-lede">
+        Turn individual content reviews into a clearer
+        understanding of your brand's consistency,
+        recurring issues, and progress.
+      </p>
+    </Reveal>
+
+    {/* RIGHT — Interactive 3D SVG */}
+    <Reveal delay={150} className="bg-insights-visual">
+     <TiltCard className="bg-workflow-3d">
+  <div className="bg-workflow-neon-light bg-neon-red" aria-hidden="true" />
+  <div className="bg-workflow-neon-light bg-neon-blue" aria-hidden="true" />
+  <div className="bg-workflow-neon-light bg-neon-yellow" aria-hidden="true" />
+
+  <img
+    src="/illustrations/unwind-brandguard-3d.svg"
+    alt="Interactive 3D visualization of BrandGuard's governance workflow"
+    className="bg-workflow-3d-image"
+    loading="lazy"
+    draggable={false}
+  />
+</TiltCard>
+    </Reveal>
+
+  </div>
+</section>
 
         {/* H — Final CTA */}
         
