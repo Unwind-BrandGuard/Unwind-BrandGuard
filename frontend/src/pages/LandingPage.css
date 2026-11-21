@@ -1681,3 +1681,350 @@
   transform: translateY(-1px);
   background: rgba(120, 140, 125, 0.1);
 }
+
+
+/* Interactive BrandGuard 3D workflow */
+
+.bg-workflow-visual-reveal {
+  width: 100%;
+  max-width: 760px;
+  margin: 48px auto 0;
+  perspective: 1200px;
+}
+
+.bg-workflow-3d {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  padding: 16px;
+
+  background: transparent;
+  border: none;
+
+  transform:
+    rotateX(var(--tilt-x))
+    rotateY(var(--tilt-y));
+
+  transform-style: preserve-3d;
+  transition:
+    transform 180ms ease-out,
+    filter 250ms ease;
+  will-change: transform;
+}
+
+.bg-workflow-3d:hover {
+  filter: drop-shadow(
+    0 22px 28px rgba(39, 85, 60, 0.16)
+  );
+}
+
+.bg-workflow-3d-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 650px;
+
+  animation: bg-workflow-float 6s ease-in-out infinite;
+
+  user-select: none;
+  pointer-events: none;
+}
+
+@keyframes bg-workflow-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-workflow-3d,
+  .bg-workflow-3d-image {
+    animation: none;
+    transition: none;
+    transform: none;
+  }
+}
+
+
+
+
+/* ========================================
+   BRANDGUARD — INTERACTIVE 3D WORKFLOW
+======================================== */
+
+.bg-workflow-visual-reveal {
+  width: 100%;
+  max-width: 1100px;
+  margin: 28px auto 0;
+  perspective: 1400px;
+}
+
+.bg-workflow-visual-stage {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 380px;
+  overflow: visible;
+}
+
+.bg-workflow-3d {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: min(100%, 850px);
+  padding: 0;
+  border: none;
+  background: transparent;
+  overflow: visible;
+
+  transform:
+    rotateX(var(--tilt-x))
+    rotateY(var(--tilt-y));
+
+  transform-style: preserve-3d;
+  transition: transform 180ms ease-out;
+  will-change: transform;
+}
+
+/* Premium ruby-garnet underlight */
+.bg-workflow-red-glow {
+  position: absolute;
+  z-index: 0;
+
+  left: 12%;
+  bottom: 12%;
+
+  width: 76%;
+  height: 38%;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    ellipse at center,
+    rgba(176, 35, 62, 0.9) 0%,
+    rgba(150, 24, 50, 0.65) 25%,
+    rgba(114, 23, 46, 0.32) 52%,
+    rgba(114, 23, 46, 0) 80%
+  );
+
+  filter: blur(22px);
+  opacity: 0;
+  transform: scale(0.7);
+
+  pointer-events: none;
+
+  transition:
+    opacity 450ms ease,
+    transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bg-workflow-3d:hover .bg-workflow-red-glow {
+  opacity: 1;
+  transform: scale(1.25);
+}
+
+/* SVG illustration */
+.bg-workflow-3d-image {
+  position: relative;
+  z-index: 1;
+
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 850px;
+
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+
+  animation: bg-workflow-float 6s ease-in-out infinite;
+}
+
+@keyframes bg-workflow-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .bg-workflow-visual-reveal {
+    margin-top: 32px;
+  }
+
+  .bg-workflow-visual-stage {
+    min-height: 240px;
+  }
+
+  .bg-workflow-3d {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-workflow-3d,
+  .bg-workflow-3d-image,
+  .bg-workflow-red-glow {
+    animation: none;
+    transition: none;
+    transform: none;
+  }
+}
+
+/* ===========================================
+   INSIGHTS — PREMIUM TWO COLUMN LAYOUT
+=========================================== */
+
+.bg-insights-section {
+  position: relative;
+  overflow: visible;
+  padding-top: 100px;
+  padding-bottom: 100px;
+}
+
+.bg-insights-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: clamp(32px, 5vw, 80px);
+
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Left text column */
+.bg-insights-content {
+  min-width: 0;
+}
+
+.bg-insights-content .bg-landing-display {
+  max-width: 530px;
+  margin: 18px 0 20px;
+  font-size: clamp(36px, 3.8vw, 60px);
+  line-height: 1.08;
+}
+
+.bg-insights-content .bg-landing-lede {
+  max-width: 460px;
+  line-height: 1.75;
+}
+
+/* Right SVG column */
+.bg-insights-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  width: 100%;
+  perspective: 1400px;
+}
+
+.bg-insights-visual .bg-workflow-3d {
+  width: 100%;
+  max-width: 650px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  overflow: visible;
+}
+
+.bg-insights-visual .bg-workflow-3d-image {
+  width: 100%;
+  max-width: none;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Tablet and mobile */
+@media (max-width: 900px) {
+  .bg-insights-section {
+    padding-top: 70px;
+    padding-bottom: 70px;
+  }
+
+  .bg-insights-layout {
+    grid-template-columns: 1fr;
+    gap: 35px;
+  }
+
+  .bg-insights-content .bg-landing-display {
+    max-width: 650px;
+  }
+
+  .bg-insights-visual .bg-workflow-3d {
+    max-width: 650px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .bg-insights-section {
+    padding-top: 55px;
+    padding-bottom: 55px;
+  }
+
+  .bg-insights-content .bg-landing-display {
+    font-size: clamp(32px, 8vw, 42px);
+  }
+}
+
+/* Remove white card behind 3D illustration */
+
+.bg-insights-visual,
+.bg-insights-visual.bg-landing-reveal,
+.bg-insights-visual .bg-workflow-3d,
+.bg-insights-visual .bg-tilt-card {
+  background: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Remove decorative card overlays */
+.bg-insights-visual .bg-workflow-3d::before,
+.bg-insights-visual .bg-workflow-3d::after {
+  content: none !important;
+}
+
+/* Keep the SVG transparent */
+.bg-insights-visual .bg-workflow-3d-image {
+  display: block;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  filter: none;
+}
+
+/* Preserve the premium red hover underglow */
+.bg-insights-visual .bg-workflow-red-glow {
+  z-index: 0;
+}
+
+.bg-insights-visual .bg-workflow-3d-image {
+  position: relative;
+  z-index: 1;
+}
