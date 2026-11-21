@@ -540,15 +540,22 @@ For visual terminology findings:
   classify it as a potential inconsistency with low severity,
   or omit the finding when no meaningful conflict exists.
 
+
 SUGGESTED CONTENT REQUIREMENTS:
 
-- For asset-only submissions, suggestedContent must be an
-  empty string.
-- For text submissions, always return the complete revised
-  text, even when no corrections are necessary.
-- If no changes are required, return the original submitted
-  text exactly.
-- Never return an empty suggestedContent for a text submission.
+- For asset-only submissions, suggestedContent must be an empty string.
+- For text submissions, generate a genuinely revised version of the complete submitted text.
+- When findings exist, you MUST correct the corresponding problematic text. Do not simply copy the original submission.
+- Address every finding, including voice_tone, prohibited_claim, approved_fact, terminology, accessibility, and visual identity issues where applicable.
+- Remove unsupported statistics, guarantees, rankings, and unverified claims instead of rewording them as softer claims.
+- Correct inaccurate product descriptions to match the supplied approved product capabilities.
+- Replace exaggerated or aggressive language with professional, trustworthy wording.
+- Preserve the original purpose, key message, and useful information wherever possible.
+- Do not introduce new product capabilities, statistics, awards, certifications, or unsupported facts.
+- Keep the revised content natural, coherent, and suitable for publication.
+- If no findings exist, return the original submitted text exactly.
+- Always return the complete revised text, never only a list of corrections.
+
 
 Return ONLY valid JSON:
 
