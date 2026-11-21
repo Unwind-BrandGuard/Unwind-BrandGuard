@@ -4,11 +4,11 @@
 
 <br>
 
-[![Live demo](https://img.shields.io/badge/live%20demo-online-2dd4bf?style=for-the-badge&labelColor=f4fbf9)](https://unwind-brand-guard.vercel.app/)
-[![React](https://img.shields.io/badge/React-19-2dd4bf?style=for-the-badge&logo=react&logoColor=2dd4bf&labelColor=f4fbf9)](https://react.dev/)
-[![Node.js](https://img.shields.io/badge/Node.js-Express-34d399?style=for-the-badge&logo=nodedotjs&logoColor=34d399&labelColor=f4fbf9)](https://expressjs.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-34d399?style=for-the-badge&logo=supabase&logoColor=34d399&labelColor=f4fbf9)](https://supabase.com/)
-[![Gemini](https://img.shields.io/badge/Google%20Gemini-AI-5eead4?style=for-the-badge&logo=googlegemini&logoColor=5eead4&labelColor=f4fbf9)](https://aistudio.google.com/)
+[![Live demo](https://img.shields.io/badge/live%20demo-online-365d48?style=for-the-badge&labelColor=f7f5f0)](https://unwind-brand-guard.vercel.app/)
+[![React](https://img.shields.io/badge/React-19-365d48?style=for-the-badge&logo=react&logoColor=365d48&labelColor=f7f5f0)](https://react.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-Express-4f8a68?style=for-the-badge&logo=nodedotjs&logoColor=4f8a68&labelColor=f7f5f0)](https://expressjs.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-4f8a68?style=for-the-badge&logo=supabase&logoColor=4f8a68&labelColor=f7f5f0)](https://supabase.com/)
+[![Gemini](https://img.shields.io/badge/Google%20Gemini-AI-a0c9a9?style=for-the-badge&logo=googlegemini&logoColor=a0c9a9&labelColor=f7f5f0)](https://aistudio.google.com/)
 
 **[Live demo](https://unwind-brand-guard.vercel.app/)** &nbsp;|&nbsp; **[Features](#-features)** &nbsp;|&nbsp; **[How it works](#-how-it-works)** &nbsp;|&nbsp; **[Architecture](#-architecture)** &nbsp;|&nbsp; **[Getting started](#-getting-started)** &nbsp;|&nbsp; **[Roadmap](#-roadmap)**
 
@@ -35,9 +35,11 @@
 - [Getting started](#-getting-started)
 - [Environment variables](#-environment-variables)
 - [Database and security](#-database-and-security)
-- [Deployment](#-deployment)
+- [Deployment configuration](#-deployment-configuration-for-new-installations)
 - [Uptime monitoring](#-uptime-monitoring)
 - [Troubleshooting](#-troubleshooting)
+- [Round 2 to Round 3](#-round-2-to-round-3)
+- [Testing and quality assurance](#-testing-and-quality-assurance)
 - [What's shipped](#-whats-shipped)
 - [Roadmap](#-roadmap)
 - [Contributing](#-contributing)
@@ -207,33 +209,36 @@ For a deeper walkthrough, see [`PROJECT_ARCHITECTURE.md`](PROJECT_ARCHITECTURE.m
 
 ```text
 Unwind-BrandGuard/
-├── frontend/                  # React 19 + Vite app
+├── frontend/                       # React 19 + Vite app
 │   ├── src/
-│   │   ├── components/        # Reusable UI components
-│   │   ├── pages/             # Route-level pages
-│   │   ├── supabase.js        # Supabase client setup
-│   │   ├── App.jsx
-│   │   └── App.css
-│   ├── public/
+│   │   ├── components/             # Shared UI, landing demo, feedback/toasts, guided tour
+│   │   ├── pages/                  # Overview, Guidelines, Content Reviews, Insights,
+│   │   │                           # Team Members, Settings, Auth, Landing, legal pages
+│   │   ├── services/               # API client helpers
+│   │   ├── utils/
+│   │   ├── supabase.js             # Supabase client (publishable key)
+│   │   └── App.jsx
+│   ├── vercel.json                 # SPA rewrites
 │   └── package.json
 │
-├── backend/                   # Express REST API
+├── backend/                        # Express REST API
 │   ├── src/
-│   │   ├── config/
-│   │   │   └── supabaseAdmin.js   # Privileged Supabase client
-│   │   ├── routes/                # API route definitions
-│   │   ├── controllers/           # Request handlers
-│   │   ├── middleware/            # Auth, validation, rate limiting
-│   │   └── server.js              # Entry point
+│   │   ├── config/supabaseAdmin.js # Privileged Supabase client (secret key)
+│   │   ├── controllers/            # analysis, invitations, workspaces
+│   │   ├── middleware/             # authMiddleware, uploadMiddleware
+│   │   ├── routes/                 # analysis, invitations, workspaces
+│   │   ├── services/               # geminiService, emailService
+│   │   └── server.js               # Entry point (/api/health)
 │   └── package.json
 │
-├── supabase/                  # Database schema, policies, functions
+├── supabase/
+│   ├── schema.sql                  # Base schema, helper functions, RLS policies
+│   └── migrations/                 # Run in filename order
+├── docs/                           # README illustrations (SVG)
 ├── PROJECT_ARCHITECTURE.md
 ├── LICENSE.md
 └── README.md
 ```
-
-> This is a representative structure; the repository may contain additional files.
 
 <img src="docs/divider.svg" alt="" width="100%">
 
@@ -262,11 +267,11 @@ cd Unwind-BrandGuard
 ```bash
 cd backend
 npm install
-cp .env.example .env   # then fill in your values (see Environment variables)
-npm run dev
+cp .env.example .env   # fill in every value, see Environment variables
+npm run dev            # nodemon; use `npm start` for a plain run
 ```
 
-The API starts on the port set by `PORT` (default `5000`).
+The API listens on `PORT` (default `5000`). Confirm it is up at `http://localhost:5000/api/health`.
 
 ### 3. Set up the frontend
 
@@ -275,43 +280,72 @@ In a second terminal:
 ```bash
 cd frontend
 npm install
-cp .env.example .env   # then fill in your values
+cp .env.example .env   # fill in every value
 npm run dev
 ```
 
-Vite prints the local URL (typically `http://localhost:5173`).
+Vite prints the local URL (typically `http://localhost:5173`, which is also the backend's default allowed CORS origin).
 
 ### 4. Prepare the database
 
-Apply the schema, RLS policies, and functions from the [`supabase/`](supabase) folder to your Supabase project (see [Database and security](#-database-and-security)). Create the private storage bucket used for uploaded images and PDFs. Do this before testing workspaces, invitations, and multimodal reviews.
+Run these in the Supabase **SQL Editor** (or with the Supabase CLI), **in this order**:
+
+| Order | File | What it sets up |
+|---|---|---|
+| 1 | [`supabase/schema.sql`](supabase/schema.sql) | Workspaces, members, brand guidelines, helper functions (`is_workspace_member`, `has_workspace_role`), owner auto-assignment, RLS policies |
+| 2 | [`supabase/migrations/20261113_workspace_invitations.sql`](supabase/migrations/20261113_workspace_invitations.sql) | `workspace_invitations` table, indexes, RLS, `accept_workspace_invitation` function |
+| 3 | [`supabase/migrations/20261113_workspace_member_permissions.sql`](supabase/migrations/20261113_workspace_member_permissions.sql) | Tightened membership policies: owners manage everyone, admins manage editors, reviewers and viewers |
+
+### 5. Create the storage bucket
+
+Uploaded images and PDFs are stored in a **private** bucket named exactly `review-assets` (the name is set in the backend's analysis controller).
+
+1. In Supabase, open **Storage → New bucket**.
+2. Name it `review-assets` and leave **Public bucket** switched **off**.
+3. Files are saved under `<workspace_id>/<random-uuid>.<ext>` and viewed through signed URLs.
+
+### 6. Configure Supabase Auth
+
+Set the **Site URL** to `http://localhost:5173` and add it to the **Redirect URLs** for local development.
+
+### 7. Verify the setup
+
+- `GET /api/health` returns a healthy response.
+- You can sign up, create a workspace, and add a guideline.
+- Submitting text for analysis returns findings (needs a valid `GEMINI_API_KEY`).
+- Uploading a PNG, JPG, WEBP, or PDF up to 10 MB succeeds and the file appears in the `review-assets` bucket.
 
 <img src="docs/divider.svg" alt="" width="100%">
 
 ## 🔑 Environment variables
 
-> ⚠️ Always use the **exact variable names** your source code reads. The tables below show the typical setup.
+Copy each `.env.example` to `.env` and fill it in. The names below are exactly what the code reads.
 
 ### Backend (`backend/.env`)
 
-| Variable | Description |
-|---|---|
-| `PORT` | Port for the Express server (for example `5000`) |
-| `SUPABASE_URL` | Your Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service-role key. **Server-side only.** |
-| `GEMINI_API_KEY` | Google Gemini API key |
-| `BREVO_API_KEY` | Brevo API key for invitation emails |
+| Variable | Required | Description |
+|---|---|---|
+| `PORT` | No | Express port. Defaults to `5000`. |
+| `FRONTEND_URL` | Yes in production | Allowed CORS origin. Defaults to `http://localhost:5173`. |
+| `SUPABASE_URL` | Yes | Your Supabase project URL |
+| `SUPABASE_ANON_KEY` | Yes | Supabase publishable (anon) key, used with the caller's session so RLS applies |
+| `SUPABASE_SECRET_KEY` | Yes | Supabase secret key for privileged operations. **Server-side only.** |
+| `GEMINI_API_KEY` | Yes | Google Gemini API key |
+| `BREVO_API_KEY` | Yes | Brevo API key for invitation emails |
+| `BREVO_SENDER_EMAIL` | Yes | Verified Brevo sender address |
+| `BREVO_SENDER_NAME` | Yes | Display name on invitation emails |
 
 ### Frontend (`frontend/.env`)
 
-Vite only exposes variables prefixed with `VITE_`. Match the names used in `src/supabase.js`:
+Vite only exposes variables prefixed with `VITE_`.
 
 | Variable | Description |
 |---|---|
 | `VITE_SUPABASE_URL` | Your Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Supabase public anon key (safe for the browser, protected by RLS) |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key (safe for the browser, protected by RLS) |
 | `VITE_API_URL` | Base URL of the backend API |
 
-> 🚨 **Never** put the service-role key in the frontend, and never commit `.env` files. Keep a `.env.example` with placeholder values so contributors know what to configure.
+> 🚨 **Never** put `SUPABASE_SECRET_KEY` in the frontend, and never commit `.env` files. Both apps ship a `.env.example` with placeholders.
 
 <img src="docs/divider.svg" alt="" width="100%">
 
@@ -328,7 +362,7 @@ BrandGuard uses **Supabase PostgreSQL** for storage and **Supabase Auth** for id
 - `workspace_invitations` table
 - Database indexes for efficient lookups
 - RLS configuration
-- Service-role-specific privileges
+- Privileges restricted to the backend's secret-key client
 - `accept_workspace_invitation` database function
 - Hashed invitation tokens with server-side validation
 
@@ -338,7 +372,7 @@ BrandGuard uses **Supabase PostgreSQL** for storage and **Supabase Auth** for id
 - ✅ RLS enforces workspace-level data isolation
 - ✅ Workspace membership and role checks on protected API routes
 - ✅ Uploaded assets live in private storage and are viewed through signed URLs
-- ✅ Content analysis is rate limited, and content length is validated
+- ✅ Content analysis is rate limited to 5 requests per minute, text is capped at 20,000 characters, and uploads are limited to one PNG, JPG, WEBP, or PDF file of up to 10 MB
 - ✅ Credentials are loaded from environment variables
 - ❌ Secrets are never exposed in frontend code or committed to Git
 
@@ -346,7 +380,9 @@ Found a vulnerability? Please report it privately to the maintainers rather than
 
 <img src="docs/divider.svg" alt="" width="100%">
 
-## 🚀 Deployment
+## 🚀 Deployment configuration for new installations
+
+The production deployment is already live. The steps below are the **required setup for anyone deploying their own instance**.
 
 | Component | Platform |
 |---|---|
@@ -357,15 +393,15 @@ Found a vulnerability? Please report it privately to the maintainers rather than
 
 **🔗 Live application:** https://unwind-brand-guard.vercel.app/
 
-### Deployment checklist
+### Required setup steps
 
-- [ ] Set all backend environment variables in Render
-- [ ] Set all `VITE_*` variables in Vercel
-- [ ] Point `VITE_API_URL` at the deployed backend
-- [ ] Allow the frontend's production origin in the backend's CORS configuration
-- [ ] Configure the Supabase Auth site URL and redirect URLs for your production domain
-- [ ] Confirm RLS policies are enabled on all tables
-- [ ] Confirm the storage bucket for uploads is private
+1. Set all backend environment variables in Render, including `FRONTEND_URL` set to your frontend's production origin (it drives the CORS allow-list).
+2. Set all `VITE_*` variables in Vercel, with `VITE_API_URL` pointing at the deployed backend.
+3. Apply `supabase/schema.sql` and the migrations in order (see [Getting started](#-getting-started)).
+4. Create the private `review-assets` storage bucket.
+5. Configure the Supabase Auth Site URL and Redirect URLs for your production domain.
+6. Confirm RLS is enabled on every table.
+7. Point an uptime monitor at `/api/health`.
 
 <img src="docs/divider.svg" alt="" width="100%">
 
@@ -400,6 +436,78 @@ Production services are monitored with [UptimeRobot](https://uptimerobot.com/).
 | Analysis is rejected | Content may exceed the length limit, or the rate limit was hit; shorten the content or retry shortly |
 | Image or PDF won't open | Confirm the storage bucket exists and that you belong to the workspace; signed URLs expire, so reload the review |
 | Data missing or "permission denied" | Review RLS policies and the user's workspace membership |
+
+<img src="docs/divider.svg" alt="" width="100%">
+
+## 🎯 Round 2 to Round 3
+
+Round 2 set three commitments. All three were delivered in Round 3.
+
+| Round 2 commitment | Round 3 delivered |
+|---|---|
+| Multimodal AI analysis | Text, image, PDF, and combined content review, with evidence, severity, guideline references, and recommended fixes |
+| Collaborative review | Reviewer and manager involvement, review comments, approve, reject, and request-changes decisions, and content version history |
+| Compliance analytics | Compliance scores, recurring violations, trends, and historical insights |
+
+**All three improvements were manually tested** against the checks in [Testing and quality assurance](#-testing-and-quality-assurance).
+
+> **Collaboration scope.** Round 3 delivers collaborative review through review comments, approval decisions, and version history. **Inline comments anchored to specific text and threaded replies are a separate future upgrade** (see the [Roadmap](#-roadmap)) and were not part of the Round 3 commitment.
+
+<img src="docs/divider.svg" alt="" width="100%">
+
+## 🧪 Testing and quality assurance
+
+All three Round 3 improvements were tested manually end to end against the running application. Automated tests are not part of the repository yet.
+
+### Functional testing
+
+| Improvement | What was verified |
+|---|---|
+| Multimodal analysis | Text-only, image-only, PDF-only, and text-plus-file submissions each return findings with evidence, severity, a guideline reference, and a recommended fix |
+| Collaborative review | A submitted review can be commented on, approved, rejected, or sent back with changes requested, and each revision appears in version history |
+| Compliance analytics | Scores, recurring violations, and trends update as reviews are submitted and decided |
+
+### Negative testing
+
+| Scenario | Expected behavior |
+|---|---|
+| Empty submission | Rejected: text or a file is required |
+| Text over 20,000 characters | Rejected with a length message |
+| Unsupported file type (anything other than PNG, JPG, WEBP, PDF) | Rejected with a supported-types message |
+| File over 10 MB, or more than one file | Rejected |
+| More than 5 analysis requests in one minute | Rate limited with a retry message |
+| Request without a valid session | Rejected by the auth middleware |
+| Accessing a workspace you do not belong to | Blocked by membership checks and RLS |
+| Actions above your role (for example a viewer changing guidelines, or an admin altering an owner) | Blocked by role policies |
+| Reusing, expiring, or tampering with an invitation token | Rejected by the invitation function |
+| Repeating an action (double-click submit, re-accepting an invitation) | No duplicate records created |
+
+### End-to-end flows
+
+| Flow | Result |
+|---|---|
+| Sign up, log in, session restore, log out | Verified |
+| Create workspace, add guidelines, invite a member by email, accept the invitation | Verified |
+| Submit content, review findings, approve or reject, check analytics | Verified |
+| Upload an image or PDF and view it afterwards through a signed URL | Verified |
+
+### UI testing
+
+| Area | Result |
+|---|---|
+| Light and dark mode, including the saved preference after a refresh | Verified |
+| Page refresh keeps the user signed in on the same page | Verified |
+| Navigation across Overview, Guidelines, Content Reviews, Insights, Team Members, and Settings | Verified |
+| Error and loading states show readable messages | Verified |
+
+### Results summary
+
+| Test area | Outcome |
+|---|---|
+| Functional testing of all three improvements | ✅ Passed |
+| Negative and security testing | ✅ Passed |
+| End-to-end verification (auth, analysis, approvals, analytics) | ✅ Passed |
+| UI testing (themes, persistence, navigation) | ✅ Passed |
 
 <img src="docs/divider.svg" alt="" width="100%">
 
@@ -452,7 +560,7 @@ Production services are monitored with [UptimeRobot](https://uptimerobot.com/).
 **Next up:**
 
 - [ ] **Deeper visual compliance.** Dedicated checks for logos, colour palettes, typography, and layout consistency.
-- [ ] **Richer collaboration.** Inline comments and threaded reviewer feedback.
+- [ ] **Richer collaboration.** Inline comments anchored to specific text and threaded replies, building on the review comments that exist today.
 - [ ] **Smarter analytics.** Trend forecasting, per-channel and per-author breakdowns, and exportable reports.
 - [ ] **Guideline intelligence.** Suggest guideline improvements from recurring violations.
 
