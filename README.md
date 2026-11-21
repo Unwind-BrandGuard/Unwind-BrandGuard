@@ -4,13 +4,13 @@
 
 <br>
 
-[![Live demo](https://img.shields.io/badge/live%20demo-online-365d48?style=for-the-badge&labelColor=f7f5f0)](https://unwind-brand-guard.vercel.app/)
+[![Live demo](https://img.shields.io/badge/live%20demo-online-365d48?style=for-the-badge&labelColor=f7f5f0)](https://www.project-unwind.cv)
 [![React](https://img.shields.io/badge/React-19-365d48?style=for-the-badge&logo=react&logoColor=365d48&labelColor=f7f5f0)](https://react.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-Express-4f8a68?style=for-the-badge&logo=nodedotjs&logoColor=4f8a68&labelColor=f7f5f0)](https://expressjs.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-4f8a68?style=for-the-badge&logo=supabase&logoColor=4f8a68&labelColor=f7f5f0)](https://supabase.com/)
 [![Gemini](https://img.shields.io/badge/Google%20Gemini-AI-a0c9a9?style=for-the-badge&logo=googlegemini&logoColor=a0c9a9&labelColor=f7f5f0)](https://aistudio.google.com/)
 
-**[Live demo](https://unwind-brand-guard.vercel.app/)** &nbsp;|&nbsp; **[Features](#-features)** &nbsp;|&nbsp; **[How it works](#-how-it-works)** &nbsp;|&nbsp; **[Architecture](#-architecture)** &nbsp;|&nbsp; **[Getting started](#-getting-started)** &nbsp;|&nbsp; **[Roadmap](#-roadmap)**
+**[Live demo](https://www.project-unwind.cv)** &nbsp;|&nbsp; **[Features](#-features)** &nbsp;|&nbsp; **[How it works](#-how-it-works)** &nbsp;|&nbsp; **[Architecture](#-architecture)** &nbsp;|&nbsp; **[Getting started](#-getting-started)** &nbsp;|&nbsp; **[Roadmap](#-roadmap)**
 
 </div>
 
@@ -391,7 +391,7 @@ The production deployment is already live. The steps below are the **required se
 | Database, Auth and Storage | [Supabase](https://supabase.com/) |
 | Source code | GitHub |
 
-**🔗 Live application:** https://unwind-brand-guard.vercel.app/
+**🔗 Live application:** https://www.project-unwind.cv
 
 ### Required setup steps
 
@@ -420,7 +420,7 @@ Production services are monitored with [UptimeRobot](https://uptimerobot.com/).
 **Monitored services**
 
 - Backend: https://unwind-brandguard.onrender.com/api/health
-- Frontend: https://unwind-brand-guard.vercel.app/
+- Frontend: https://www.project-unwind.cv
 
 <img src="docs/divider.svg" alt="" width="100%">
 
