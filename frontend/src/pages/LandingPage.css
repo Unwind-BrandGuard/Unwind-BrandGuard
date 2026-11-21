@@ -2028,3 +2028,130 @@
   position: relative;
   z-index: 1;
 }
+
+/* ============================================
+   BRANDGUARD — RGB CYCLING NEON UNDERGLOW
+============================================ */
+
+.bg-landing .bg-insights-visual .bg-workflow-3d {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+}
+
+/* Shared underglow positioning */
+.bg-landing .bg-insights-visual .bg-workflow-neon-light {
+  position: absolute;
+  z-index: 0;
+
+  left: 12%;
+  bottom: 8%;
+  width: 76%;
+  height: 42%;
+
+  border-radius: 50%;
+  filter: blur(26px);
+
+  opacity: 0;
+  transform: scale(0.85);
+
+  pointer-events: none;
+  will-change: opacity;
+
+  transition:
+    opacity 400ms ease,
+    transform 500ms ease;
+}
+
+/* Blood red */
+.bg-landing .bg-insights-visual .bg-neon-red {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(180, 0, 35, 0.95) 0%,
+    rgba(140, 0, 30, 0.65) 35%,
+    transparent 75%
+  );
+}
+
+/* Electric blue */
+.bg-landing .bg-insights-visual .bg-neon-blue {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 95, 255, 0.95) 0%,
+    rgba(0, 65, 230, 0.65) 35%,
+    transparent 75%
+  );
+}
+
+/* Neon yellow */
+.bg-landing .bg-insights-visual .bg-neon-yellow {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(220, 255, 0, 0.95) 0%,
+    rgba(190, 235, 0, 0.65) 35%,
+    transparent 75%
+  );
+}
+
+/* Start cycling only on hover */
+.bg-landing .bg-insights-visual .bg-workflow-3d:hover
+.bg-workflow-neon-light {
+  transform: scale(1.15);
+  animation-duration: 9s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* Each colour occupies one-third of the cycle */
+.bg-landing .bg-insights-visual .bg-workflow-3d:hover
+.bg-neon-red {
+  animation-name: bg-cycle-red;
+}
+
+.bg-landing .bg-insights-visual .bg-workflow-3d:hover
+.bg-neon-blue {
+  animation-name: bg-cycle-blue;
+}
+
+.bg-landing .bg-insights-visual .bg-workflow-3d:hover
+.bg-neon-yellow {
+  animation-name: bg-cycle-yellow;
+}
+
+/* Smooth crossfades */
+@keyframes bg-cycle-red {
+  0%, 27% { opacity: 1; }
+  33%, 94% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes bg-cycle-blue {
+  0%, 27% { opacity: 0; }
+  33%, 60% { opacity: 1; }
+  67%, 100% { opacity: 0; }
+}
+
+@keyframes bg-cycle-yellow {
+  0%, 60% { opacity: 0; }
+  67%, 94% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Keep the illustration above all lighting layers */
+.bg-landing .bg-insights-visual .bg-workflow-3d-image {
+  position: relative;
+  z-index: 1;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .bg-landing .bg-insights-visual .bg-workflow-3d:hover
+  .bg-workflow-neon-light {
+    animation: none;
+  }
+
+  .bg-landing .bg-insights-visual .bg-workflow-3d:hover
+  .bg-neon-red {
+    opacity: 0.65;
+  }
+}
