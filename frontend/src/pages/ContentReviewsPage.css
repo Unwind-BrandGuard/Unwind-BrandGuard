@@ -971,3 +971,158 @@
     text-align: left;
   }
 }
+
+
+
+/* BrandGuard review UI refresh — light mode */
+
+:root:not([data-theme="dark"]) .cr-page {
+  color: #263a30;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-panel,
+:root:not([data-theme="dark"]) .cr-page .cr-stats > div {
+  background: #fffefa;
+  color: #263a30;
+  border: 1px solid #dce5db;
+  border-radius: 18px;
+  box-shadow: 0 8px 30px rgba(26, 59, 38, .045);
+}
+
+:root:not([data-theme="dark"]) .cr-page h1,
+:root:not([data-theme="dark"]) .cr-page h2,
+:root:not([data-theme="dark"]) .cr-page h3,
+:root:not([data-theme="dark"]) .cr-page .cr-stats strong {
+  color: #263a30;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-eyebrow,
+:root:not([data-theme="dark"]) .cr-page .cr-comments-heading h3 svg,
+:root:not([data-theme="dark"]) .cr-page .cr-version-heading h3 svg {
+  color: #557963;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-heading p,
+:root:not([data-theme="dark"]) .cr-page .cr-panel-heading p,
+:root:not([data-theme="dark"]) .cr-page .cr-stats span {
+  color: #65786c;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-primary {
+  background: #365d48;
+  border-color: #365d48;
+  color: #fff;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-primary:hover {
+  background: #294b38;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-secondary,
+:root:not([data-theme="dark"]) .cr-page .cr-icon-button {
+  background: #f4f7f1;
+  border: 1px solid #d6e3d6;
+  color: #365d48;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-danger {
+  background: #fff1ef;
+  border: 1px solid #eccac6;
+  color: #a43838;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-review-item,
+:root:not([data-theme="dark"]) .cr-page .cr-comment,
+:root:not([data-theme="dark"]) .cr-page .cr-version-item {
+  background: #f8faf5;
+  color: #263a30;
+  border: 1px solid #dce5db;
+  border-radius: 13px;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-review-item:hover,
+:root:not([data-theme="dark"]) .cr-page .cr-version-item summary:hover {
+  background: #edf4ed;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-comments,
+:root:not([data-theme="dark"]) .cr-page .cr-version-history,
+:root:not([data-theme="dark"]) .cr-page .cr-version-content {
+  border-color: #dce5db;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-comment-meta strong,
+:root:not([data-theme="dark"]) .cr-page .cr-version-main strong,
+:root:not([data-theme="dark"]) .cr-page .cr-version-content > div > strong {
+  color: #365d48;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-comment p,
+:root:not([data-theme="dark"]) .cr-page .cr-version-main span,
+:root:not([data-theme="dark"]) .cr-page .cr-version-content p {
+  color: #344a3c;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-version-date,
+:root:not([data-theme="dark"]) .cr-page .cr-comment-meta span,
+:root:not([data-theme="dark"]) .cr-page .cr-comments-heading span,
+:root:not([data-theme="dark"]) .cr-page .cr-version-heading span,
+:root:not([data-theme="dark"]) .cr-page .cr-comments-empty,
+:root:not([data-theme="dark"]) .cr-page .cr-version-empty {
+  color: #667b6e;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-comment-form textarea,
+:root:not([data-theme="dark"]) .cr-page .cr-form input,
+:root:not([data-theme="dark"]) .cr-page .cr-form select,
+:root:not([data-theme="dark"]) .cr-page .cr-form textarea,
+:root:not([data-theme="dark"]) .cr-page .cr-search input {
+  background: #fffefa;
+  border-color: #d6e3d6;
+  color: #263a30;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-search {
+  background: #fffefa;
+  border-color: #d6e3d6;
+}
+
+:root:not([data-theme="dark"]) .cr-page .cr-comment-form textarea:focus {
+  border-color: #557963;
+  box-shadow: 0 0 0 3px rgba(85, 121, 99, .12);
+}
+
+.cr-page .cr-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 20px;
+}
+
+.cr-page .cr-actions button {
+  min-height: 42px;
+  border-radius: 11px;
+}
+
+.cr-page .cr-version-item summary {
+  min-height: 64px;
+}
+
+.cr-page .cr-comment-form textarea {
+  min-height: 96px;
+  line-height: 1.6;
+  border-radius: 12px;
+}
+
+.cr-page button:focus-visible,
+.cr-page textarea:focus-visible {
+  outline: 3px solid #93b79d;
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .cr-page .cr-actions button {
+    flex: 1 1 145px;
+  }
+}
