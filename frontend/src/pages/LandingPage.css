@@ -2155,3 +2155,75 @@
     opacity: 0.65;
   }
 }
+
+
+/* Code Nova demo entry */
+
+.bg-landing .bg-landing-btn--demo {
+  background: #e5eee6;
+  border: 1px solid #b7cdbb;
+  color: #365d48;
+}
+
+.bg-landing .bg-landing-btn--demo:hover {
+  background: #d8e8da;
+  border-color: #365d48;
+  box-shadow: 0 10px 30px rgba(38, 58, 48, 0.12);
+}
+
+.bg-landing .bg-judge-floating-info {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 90;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px 18px;
+  border: 1px solid #b7cdbb;
+  border-radius: 999px;
+
+  background: #fffefa;
+  color: #365d48;
+
+  box-shadow: 0 12px 35px rgba(25, 55, 37, 0.15);
+
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.bg-landing .bg-judge-floating-info:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(25, 55, 37, 0.22);
+}
+
+:root[data-theme='dark'] .bg-landing .bg-landing-btn--demo,
+:root[data-theme='dark'] .bg-landing .bg-judge-floating-info {
+  background: #24352b;
+  border-color: #49644f;
+  color: #d4e8d7;
+}
+
+@media (max-width: 600px) {
+  .bg-landing .bg-judge-floating-info {
+    left: 12px;
+    bottom: 12px;
+    padding: 11px 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-landing .bg-judge-floating-info {
+    transition: none;
+  }
+
+  .bg-landing .bg-judge-floating-info:hover {
+    transform: none;
+  }
+}

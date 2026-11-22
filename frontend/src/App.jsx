@@ -31,6 +31,7 @@ import SettingsPage from './pages/SettingsPage'
 import TeamMembersPage from './pages/TeamMembersPage'
 import TermsOfServicePage from './pages/TermsOfServicePage'
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
+import JudgeDemoPopup from './components/JudgeDemoPopup'
 import AboutPage from './pages/AboutPage'
 
 import './App.css'
@@ -46,6 +47,9 @@ const navigation = [
   { name: 'Settings', icon: Settings }
 ]
 
+const DEMO_START = new Date('2026-11-22T00:00:00+05:30').getTime()
+const DEMO_END = new Date('2026-11-24T00:00:00+05:30').getTime()
+
 export default function App() {
   const [session, setSession] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -56,6 +60,8 @@ export default function App() {
   const [invitationToken, setInvitationToken] = useState(
     () => new URLSearchParams(window.location.search).get('token') || ''
   )
+  const [showJudgePopup, setShowJudgePopup] = useState(false)
+const [judgeDemoSelected, setJudgeDemoSelected] = useState(false)
 
   const [authOpen, setAuthOpen] = useState(
     () => Boolean(new URLSearchParams(window.location.search).get('token'))
@@ -85,6 +91,21 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [showLanding, setShowLanding] = useState(false)
 
+  const [demoAvailable, setDemoAvailable] = useState(
+  () => Date.now() >= DEMO_START && Date.now() < DEMO_END
+)
+
+useEffect(() => {
+  const update = () => {
+    setDemoAvailable(
+      Date.now() >= DEMO_START && Date.now() < DEMO_END
+    )
+  }
+
+  const interval = setInterval(update, 30000)
+  return () => clearInterval(interval)
+}, [])
+
   // Theme management
   const [theme, setTheme] = useState(() => {
     try {
@@ -111,6 +132,12 @@ export default function App() {
   function toggleTheme() {
     setTheme(current => current === 'light' ? 'dark' : 'light')
   }
+function openJudgeLogin() {
+  setAuthPage('login')
+  setAuthOpen(true)
+  setJudgeDemoSelected(false)
+  setShowJudgePopup(demoAvailable && !invitationToken)
+}
 
   const workspaceRequests = useRef(new Map())
 
@@ -579,10 +606,8 @@ export default function App() {
             setAuthPage('signup')
             setAuthOpen(true)
           }}
-          onSignIn={() => {
-            setAuthPage('login')
-            setAuthOpen(true)
-          }}
+          onSignIn={openJudgeLogin}
+          onCheckDemo={demoAvailable ? openJudgeLogin : undefined}
           onAbout={openAboutPage}
           onTerms={() => setLegalPage('terms')}
           onPrivacy={() => setLegalPage('privacy')}
@@ -604,12 +629,36 @@ export default function App() {
     }
 
     return (
-      <LoginPage
-        invitationMode={Boolean(invitationToken)}
-        onBack={() => setAuthOpen(false)}
-        onSignup={() => setAuthPage('signup')}
+  <>
+    {showJudgePopup && !invitationToken && (
+      <JudgeDemoPopup
+        onYes={() => {
+          setJudgeDemoSelected(true)
+          setShowJudgePopup(false)
+        }}
+        onNo={() => {
+          setJudgeDemoSelected(false)
+          setShowJudgePopup(false)
+        }}
       />
-    )
+    )}
+
+    <LoginPage
+      invitationMode={Boolean(invitationToken)}
+      demoMode={judgeDemoSelected && !invitationToken}
+      onBack={() => {
+        setAuthOpen(false)
+        setShowJudgePopup(false)
+        setJudgeDemoSelected(false)
+      }}
+      onSignup={() => {
+        setShowJudgePopup(false)
+        setJudgeDemoSelected(false)
+        setAuthPage('signup')
+      }}
+    />
+  </>
+)
   }
 
   // -----------------------------------------

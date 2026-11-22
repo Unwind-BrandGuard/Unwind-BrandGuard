@@ -3457,3 +3457,280 @@ body {
     padding-top: 8px;
   }
 }
+
+
+
+/* ============================================
+   CODE NOVA — JUDGE DEMO LOGIN
+============================================ */
+
+.judge-login-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 16px;
+  margin: 22px 0;
+  border: 1px solid #bdd5c2;
+  border-radius: 14px;
+  background: #edf4ed;
+  color: #365d48;
+}
+
+.judge-login-banner > svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.judge-login-banner strong,
+.judge-login-banner span {
+  display: block;
+}
+
+.judge-login-banner strong {
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.judge-login-banner span {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.judge-login-entry {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  margin: 22px 0;
+  padding: 16px;
+  border: 1px solid #b9d0bc;
+  border-radius: 14px;
+  background: #f1f6ef;
+  color: #365d48;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.judge-login-entry:hover {
+  background: #e6f0e5;
+  border-color: #668b71;
+  transform: translateY(-2px);
+}
+
+.judge-login-entry > span {
+  flex: 1;
+}
+
+.judge-login-entry strong,
+.judge-login-entry small {
+  display: block;
+}
+
+.judge-login-entry strong {
+  margin-bottom: 3px;
+  font-size: 13px;
+}
+
+.judge-login-entry small {
+  color: #66776b;
+  font-size: 11px;
+}
+
+.judge-login-entry > svg {
+  flex-shrink: 0;
+}
+
+.judge-back-to-login {
+  display: block;
+  margin: 18px auto 0;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  color: #365d48;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.judge-back-to-login:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Bottom-left information control */
+
+.judge-floating-info {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 17px;
+  border: 1px solid #b9d0bc;
+  border-radius: 999px;
+  background: #fffefa;
+  color: #365d48;
+  box-shadow: 0 12px 36px rgba(23, 52, 36, 0.14);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.judge-floating-info:hover {
+  background: #edf4ed;
+}
+
+/* Information popup */
+
+.judge-info-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(10, 28, 18, 0.6);
+  backdrop-filter: blur(7px);
+}
+
+.judge-info-modal {
+  position: relative;
+  width: min(100%, 440px);
+  padding: 34px;
+  border: 1px solid #dce5db;
+  border-radius: 22px;
+  background: #fffefa;
+  color: #263a30;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.22);
+}
+
+.judge-info-modal h2 {
+  margin: 14px 0;
+  font-family: Georgia, serif;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.judge-info-modal p {
+  color: #647569;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.judge-info-modal .primary-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  margin-top: 24px;
+}
+
+.judge-info-shield {
+  color: #365d48;
+}
+
+.judge-info-close {
+  position: absolute;
+  top: 17px;
+  right: 17px;
+  border: 0;
+  background: transparent;
+  color: #66776b;
+  cursor: pointer;
+}
+
+/* Dark mode */
+
+:root[data-theme="dark"] .judge-login-banner,
+:root[data-theme="dark"] .judge-login-entry {
+  background: #24352b;
+  border-color: #405947;
+  color: #d4e8d7;
+}
+
+:root[data-theme="dark"] .judge-login-entry:hover {
+  background: #304537;
+}
+
+:root[data-theme="dark"] .judge-login-entry small {
+  color: #b3c5b7;
+}
+
+:root[data-theme="dark"] .judge-back-to-login {
+  color: #a0c9a9;
+}
+
+:root[data-theme="dark"] .judge-floating-info,
+:root[data-theme="dark"] .judge-info-modal {
+  background: #1b2720;
+  border-color: #405947;
+  color: #e9eee7;
+}
+
+:root[data-theme="dark"] .judge-info-modal p {
+  color: #b3c5b7;
+}
+
+:root[data-theme="dark"] .judge-info-shield {
+  color: #a0c9a9;
+}
+
+/* Mobile */
+
+@media (max-width: 520px) {
+  .judge-floating-info {
+    bottom: 12px;
+    left: 12px;
+    padding: 11px 14px;
+  }
+
+  .judge-info-modal {
+    padding: 26px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .judge-login-entry {
+    transition: none;
+  }
+
+  .judge-login-entry:hover {
+    transform: none;
+  }
+}
+
+/* Locked demo credentials */
+
+.auth-input.judge-locked-input {
+  border-color: #b9d0bc;
+  background: #edf4ed;
+}
+
+.auth-input.judge-locked-input input {
+  cursor: default;
+  user-select: none;
+  caret-color: transparent;
+}
+
+.judge-field-lock {
+  flex-shrink: 0;
+  color: #668b71;
+}
+
+:root[data-theme="dark"] .auth-input.judge-locked-input {
+  background: #24352b;
+  border-color: #405947;
+}
+
+:root[data-theme="dark"] .judge-field-lock {
+  color: #a0c9a9;
+}

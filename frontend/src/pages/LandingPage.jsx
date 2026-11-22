@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { ArrowRight, ArrowUpRight, Menu, X,
-  ShieldCheck, Moon , Sun
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Menu,
+  X,
+  ShieldCheck,
+  Moon,
+  Sun,
+  Info
 } from 'lucide-react'
 import '../App.css' 
 import InteractiveBrandCore from "../components/landing/InteractiveBrandCore";// keeps theme variables; landing styles below are fully namespaced
@@ -279,6 +286,7 @@ function DriftVisual() {
 export default function LandingPage({
   onGetStarted,
   onSignIn,
+  onCheckDemo,
   onAbout,
   onTerms,
   onPrivacy,
@@ -455,6 +463,16 @@ useEffect(() => {
               <a className="bg-landing-btn bg-landing-btn--ghost" href="#how-it-works" onClick={(e) => goTo(e, 'how-it-works')}>
                 Explore how it works
               </a>
+              {onCheckDemo && (
+  <button
+    type="button"
+    className="bg-landing-btn bg-landing-btn--demo"
+    onClick={onCheckDemo}
+  >
+    <ShieldCheck size={17} />
+    Check Demo
+  </button>
+)}
             </div>
             <p className="bg-landing-trust bg-landing-intro" style={{ '--i': 4 }}>
               <ShieldCheck size={15} aria-hidden="true" /> AI-assisted analysis. Human-controlled decisions.
@@ -759,6 +777,18 @@ useEffect(() => {
         </div>
         <p className="bg-landing-footer-note">© Unwind BrandGuard. </p>
       </footer>
+      {onCheckDemo && (
+  <button
+    type="button"
+    className="bg-judge-floating-info"
+    onClick={onCheckDemo}
+    aria-label="Open Code Nova judge demo"
+    title="Code Nova judges can explore the demo workspace"
+  >
+    <Info size={20} />
+    <span>Code Nova Judge Demo</span>
+  </button>
+)}
     </div>
   )
 }
