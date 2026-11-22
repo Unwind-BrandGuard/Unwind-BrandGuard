@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Users,
   UserPlus,
@@ -33,6 +33,29 @@ export default function TeamMembersPage({ workspace, role }) {
   const [inviteRole, setInviteRole] = useState('editor')
   const [inviting, setInviting] = useState(false)
   const [pendingAction, setPendingAction] = useState('')
+
+  const [confirmation, setConfirmation] = useState(null)
+const confirmationResolver = useRef(null)
+
+function askConfirmation(title, description, danger = false) {
+  return new Promise(resolve => {
+    confirmationResolver.current = resolve
+    setConfirmation({ title, description, danger })
+  })
+}
+
+function resolveConfirmation(accepted) {
+  confirmationResolver.current?.(accepted)
+  confirmationResolver.current = null
+  setConfirmation(null)
+}
+
+useEffect(() => {
+  return () => {
+    confirmationResolver.current?.(false)
+    confirmationResolver.current = null
+  }
+}, [])
 
   const canManage = ['owner', 'admin'].includes(role)
   const isOwner = role === 'owner'
@@ -162,9 +185,10 @@ async function handleInvite(event) {
 }
 
   async function handleRoleChange(userId, newRole) {
-    if (!window.confirm(`Change this member's role to ${ROLE_LABELS[newRole]}?`)) {
-      return
-    }
+   if (!(await askConfirmation(
+  'Change member role?',
+  `Change this member's role to ${ROLE_LABELS[newRole]}?`
+))) return
 
     setPendingAction(userId)
     setError('')
@@ -189,9 +213,11 @@ async function handleInvite(event) {
   }
 
   async function handleRemove(member) {
-    if (!window.confirm(`Remove ${member.email || 'this member'} from the workspace?`)) {
-      return
-    }
+   if (!(await askConfirmation(
+  'Remove team member?',
+  `${member.email || 'This member'} will lose access to this workspace.`,
+  true
+))) return
 
     setPendingAction(member.user_id)
     setError('')
@@ -213,7 +239,11 @@ async function handleInvite(event) {
   }
 
   async function handleRevoke(invitationId) {
-    if (!window.confirm('Revoke this pending invitation?')) return
+   if (!(await askConfirmation(
+  'Revoke invitation?',
+  'This pending invitation will no longer be valid.',
+  true
+))) return
 
     setPendingAction(invitationId)
     setError('')
@@ -485,6 +515,65 @@ async function handleInvite(event) {
           )}
         </section>
       )}
+      {confirmation && (
+  <div
+    className="team-confirm-overlay"
+    onMouseDown={event => {
+      if (event.target === event.currentTarget) {
+        resolveConfirmation(false)
+      }
+    }}
+  >
+    <div
+      className="team-confirm-modal"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="team-confirm-title"
+      aria-describedby="team-confirm-description"
+      onKeyDown={event => {
+        if (event.key === 'Escape') {
+          event.stopPropagation()
+          resolveConfirmation(false)
+        }
+      }}
+    >
+      <div className="team-confirm-icon">
+        <Shield size={23} />
+      </div>
+
+      <h2 id="team-confirm-title">
+        {confirmation.title}
+      </h2>
+
+      <p id="team-confirm-description">
+        {confirmation.description}
+      </p>
+
+      <div className="team-confirm-actions">
+        <button
+          type="button"
+          className="team-confirm-cancel"
+          autoFocus
+          onClick={() => resolveConfirmation(false)}
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          className={
+            confirmation.danger
+              ? 'team-confirm-danger'
+              : 'team-confirm-accept'
+          }
+          onClick={() => resolveConfirmation(true)}
+        >
+          {confirmation.danger ? 'Confirm action' : 'Continue'}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   )
 }

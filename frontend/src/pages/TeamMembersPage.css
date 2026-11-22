@@ -636,3 +636,179 @@
     transform: none;
   }
 }
+
+/* BrandGuard team UI — light mode */
+
+:root:not([data-theme="dark"]) .team-page {
+  color: #263a30;
+}
+
+:root:not([data-theme="dark"]) .team-panel,
+:root:not([data-theme="dark"]) .team-stat-card {
+  background: #fffefa;
+  border: 1px solid #dce5db;
+  border-radius: 18px;
+  color: #365d48;
+  box-shadow: 0 8px 30px rgba(26, 59, 38, .045);
+}
+
+:root:not([data-theme="dark"]) .team-panel-heading,
+:root:not([data-theme="dark"]) .team-panel-heading h2,
+:root:not([data-theme="dark"]) .team-stat-card strong {
+  color: #263a30;
+}
+
+:root:not([data-theme="dark"]) .team-panel-heading p,
+:root:not([data-theme="dark"]) .team-stat-card span,
+:root:not([data-theme="dark"]) .team-table th {
+  color: #65786c;
+}
+
+:root:not([data-theme="dark"]) .team-table td {
+  color: #344a3c;
+  border-color: #e4ebe1;
+}
+
+:root:not([data-theme="dark"]) .invite-form label {
+  color: #365d48;
+}
+
+:root:not([data-theme="dark"]) .invite-form input,
+:root:not([data-theme="dark"]) .invite-form select,
+:root:not([data-theme="dark"]) .member-actions select {
+  background: #fffefa;
+  color: #263a30;
+  border: 1px solid #d6e3d6;
+}
+
+:root:not([data-theme="dark"]) .invite-form button {
+  background: #365d48;
+  color: white;
+}
+
+:root:not([data-theme="dark"]) .team-refresh {
+  background: #f4f7f1;
+  color: #365d48;
+  border-color: #d6e3d6;
+}
+
+:root:not([data-theme="dark"]) .member-avatar {
+  background: #e5eee6;
+  color: #365d48;
+  border-color: #bdd5c2;
+}
+
+/* Confirmation dialog */
+
+.team-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(11, 30, 20, .62);
+  backdrop-filter: blur(7px);
+}
+
+.team-confirm-modal {
+  width: min(100%, 440px);
+  padding: 32px;
+  border: 1px solid #dce5db;
+  border-radius: 22px;
+  background: #fffefa;
+  color: #263a30;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .23);
+}
+
+.team-confirm-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 20px;
+  border-radius: 15px;
+  background: #e5eee6;
+  color: #365d48;
+}
+
+.team-confirm-modal h2 {
+  margin: 0 0 12px;
+  font-size: 24px;
+  line-height: 1.25;
+  color: inherit;
+}
+
+.team-confirm-modal p {
+  margin: 0;
+  color: #66776b;
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.team-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 27px;
+}
+
+.team-confirm-actions button {
+  min-height: 44px;
+  padding: 11px 17px;
+  border-radius: 11px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.team-confirm-cancel {
+  background: #f4f7f1;
+  color: #365d48;
+  border: 1px solid #d6e3d6;
+}
+
+.team-confirm-accept {
+  background: #365d48;
+  color: #fff;
+  border: 1px solid #365d48;
+}
+
+.team-confirm-danger {
+  background: #ab3939;
+  color: white;
+  border: 1px solid #ab3939;
+}
+
+/* Dark mode */
+
+[data-theme="dark"] .team-confirm-modal {
+  background: #1b2720;
+  border-color: #405947;
+  color: #e9eee7;
+}
+
+[data-theme="dark"] .team-confirm-modal p {
+  color: #b3c5b7;
+}
+
+[data-theme="dark"] .team-confirm-icon {
+  background: #304537;
+  color: #b9ddc3;
+}
+
+@media (max-width: 520px) {
+  .team-confirm-modal {
+    padding: 24px;
+  }
+
+  .team-confirm-actions {
+    flex-direction: column;
+  }
+
+  .team-confirm-actions button {
+    width: 100%;
+  }
+}
