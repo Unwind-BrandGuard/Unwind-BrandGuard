@@ -27,7 +27,7 @@ const DEMO_PASSWORD = 'Unwind@123'
 
 // Demo visibility window: IST
 const DEMO_START_AT = '2026-11-22T00:00:00+05:30'
-const DEMO_END_AT = '2026-11-24T00:00:00+05:30'
+const DEMO_END_AT = '2026-12-03T00:00:00+05:30'
 
 function isDemoAvailable() {
   const now = Date.now()
