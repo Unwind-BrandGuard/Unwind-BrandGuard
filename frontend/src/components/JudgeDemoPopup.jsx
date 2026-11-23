@@ -36,8 +36,8 @@ export default function JudgeDemoPopup({ onYes, onNo }) {
         </p>
 
         <p className="judge-note">
-          Demo access is available during the two-day
-          judging period.
+          Demo access is available throughout the
+  Code Nova judging period.
         </p>
 
         <div className="judge-actions">
