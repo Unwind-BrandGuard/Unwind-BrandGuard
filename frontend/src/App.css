@@ -3734,3 +3734,228 @@ body {
 :root[data-theme="dark"] .judge-field-lock {
   color: #a0c9a9;
 }
+
+/* ==========================================
+   CODE NOVA JUDGE CONFIRMATION POPUP
+   Unwind BrandGuard
+========================================== */
+
+.judge-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(10, 25, 17, 0.72);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+
+.judge-popup {
+  position: relative;
+  width: min(100%, 480px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  padding: 38px;
+  box-sizing: border-box;
+  border: 1px solid #dce5db;
+  border-radius: 24px;
+  background: #fffefa;
+  color: #263a30;
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.3);
+  animation: judge-popup-appear 0.3s ease-out;
+  text-align: left;
+}
+
+@keyframes judge-popup-appear {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.judge-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #dce5db;
+  border-radius: 50%;
+  background: #f3f6ef;
+  color: #365d48;
+  cursor: pointer;
+}
+
+.judge-close:hover {
+  background: #e3eee3;
+}
+
+.judge-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 24px;
+  border-radius: 17px;
+  background: #e5eee6;
+  color: #365d48;
+}
+
+.judge-eyebrow {
+  display: block;
+  margin-bottom: 12px;
+  color: #668b71;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.judge-popup h2 {
+  margin: 0 0 18px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(26px, 4vw, 34px);
+  line-height: 1.18;
+  font-weight: 600;
+  color: #263a30;
+}
+
+.judge-popup p {
+  margin: 0 0 17px;
+  color: #637568;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.judge-popup .judge-note {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px solid #dce9db;
+  border-radius: 12px;
+  background: #edf4ed;
+  color: #526b58;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.judge-actions {
+  display: flex;
+  gap: 11px;
+  margin-top: 28px;
+}
+
+.judge-actions button {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 12px 15px;
+  border-radius: 11px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.judge-cancel {
+  border: 1px solid #d6e3d6;
+  background: #f4f7f1;
+  color: #365d48;
+}
+
+.judge-cancel:hover {
+  background: #e9f0e6;
+}
+
+.judge-continue {
+  border: 1px solid #365d48;
+  background: #365d48;
+  color: #ffffff;
+}
+
+.judge-continue:hover {
+  background: #294b38;
+  transform: translateY(-2px);
+}
+
+.judge-popup button:focus-visible {
+  outline: 3px solid #9cc5a4;
+  outline-offset: 3px;
+}
+
+/* Dark mode */
+
+[data-theme="dark"] .judge-popup {
+  background: #1b2720;
+  border-color: #405947;
+  color: #e9eee7;
+}
+
+[data-theme="dark"] .judge-popup h2 {
+  color: #f0f4ee;
+}
+
+[data-theme="dark"] .judge-popup p {
+  color: #b3c5b7;
+}
+
+[data-theme="dark"] .judge-popup .judge-note {
+  background: #24352b;
+  border-color: #405947;
+  color: #c5dbca;
+}
+
+[data-theme="dark"] .judge-icon,
+[data-theme="dark"] .judge-close {
+  background: #304537;
+  border-color: #405947;
+  color: #b9ddc3;
+}
+
+[data-theme="dark"] .judge-cancel {
+  background: #304537;
+  border-color: #405947;
+  color: #e9eee7;
+}
+
+/* Mobile */
+
+@media (max-width: 520px) {
+  .judge-popup {
+    padding: 28px 22px;
+  }
+
+  .judge-actions {
+    flex-direction: column;
+  }
+
+  .judge-actions button {
+    width: 100%;
+    flex: initial;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .judge-popup {
+    animation: none;
+  }
+
+  .judge-actions button {
+    transition: none;
+  }
+
+  .judge-continue:hover {
+    transform: none;
+  }
+}
